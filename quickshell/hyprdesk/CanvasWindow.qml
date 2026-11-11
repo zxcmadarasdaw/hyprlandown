@@ -11,7 +11,7 @@ import "lib/canvas.js" as CanvasLib
 //
 // Мир большого размера (CanvasLib.WORLD), камера = сдвиг + масштаб.
 // Пустое место: тянуть левой или средней кнопкой - панорамирование; колесо - масштаб.
-// Виджеты двигаются и меняют размер только в режиме редактирования (Super+E).
+// Виджеты двигаются и меняют размер только в режиме редактирования (Super+Shift+C).
 PanelWindow {
     id: win
 
@@ -200,7 +200,7 @@ PanelWindow {
             Text {
                 id: hint
                 anchors.centerIn: parent
-                text: "Редактирование: тяни за шапку, размер - уголок справа снизу. Выход: Super+E или Esc"
+                text: "Редактирование: тяни за шапку, размер - уголок справа снизу. Выход: Super+Shift+C или Esc"
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.sizeBody

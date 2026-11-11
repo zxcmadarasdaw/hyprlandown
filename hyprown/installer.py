@@ -14,6 +14,7 @@ from . import TESTED_FEDORA
 from .config import ConfigManager
 from .context import Ctx
 from .keybinds import KeyManager
+from .theme import ThemeEngine
 from .pkg import DnfAdapter
 from .recovery import RecoveryManager
 from .registry import Registry
@@ -290,6 +291,7 @@ class Installer:
             self._install_session_files(comp, journal, rep)
         self.cfg.ensure_performance_file()
         KeyManager(self.ctx).ensure_user_conf()  # source в hyprland.conf не должен висеть в пустоту
+        ThemeEngine(self.ctx).ensure_files()     # theme.conf и tokens.json (этап 4)
         self.reg.mark(comp.id, installed=True, enabled=True, version=comp.version, failed=False, failure="")
         journal["ops"].append({"op": "mark", "component": comp.id})
         rep.installed.append(comp.id)

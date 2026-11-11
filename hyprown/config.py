@@ -157,6 +157,8 @@ class ConfigManager:
         self.ensure_performance_file()
         keys = KeyManager(c)
         keys.ensure_user_conf()
+        from .theme import ThemeEngine  # поздний импорт: config не зависит от темы при импорте
+        ThemeEngine(c).ensure_files()
         main_lines = []
         for line in (hypr / "hyprland.conf").read_text(encoding="utf-8").splitlines():
             m = re.match(r"^(\s*)source\s*=\s*(.+?)\s*$", line)

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "aurora-glass",
+  "name": "Aurora Glass",
+  "description": "Главный стиль: стекло, холодные северные оттенки, мягкое свечение.",
+  "palette": {
+    "source": "preset",
+    "bg": "#0B1020",
+    "surface": "#141B2E",
+    "surface_alt": "#1B2440",
+    "primary": "#7AA2F7",
+    "secondary": "#BB9AF7",
+    "accent": "#7DCFFF",
+    "text": "#E6ECFF",
+    "text_muted": "#9AA6C7",
+    "border": "#2A3558",
+    "success": "#9ECE6A",
+    "warning": "#E0AF68",
+    "error": "#F7768E"
+  },
+  "material": {
+    "opacity": 0.62,
+    "blur_radius": 24,
+    "tint_strength": 0.35,
+    "highlight_strength": 0.5,
+    "glow_strength": 0.4,
+    "border_width": 1
+  },
+  "motion": {
+    "duration_fast_ms": 120,
+    "duration_normal_ms": 220,
+    "duration_slow_ms": 420,
+    "easing": "ease-out",
+    "spring": {
+      "stiffness": 180,
+      "damping": 22,
+      "mass": 1
+    }
+  },
+  "shape": {
+    "radius_small": 8,
+    "radius_medium": 14,
+    "radius_large": 22,
+    "spacing_unit": 8
+  },
+  "typography": {
+    "font_family": "Inter",
+    "font_family_mono": "JetBrains Mono",
+    "size_small": 12,
+    "size_body": 14,
+    "size_title": 20
+  },
+  "effects": {
+    "quality": "balanced",
+    "liquid_glass": true,
+    "spring_physics": true
+  }
+}

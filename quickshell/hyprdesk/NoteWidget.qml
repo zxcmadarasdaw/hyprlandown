@@ -6,14 +6,16 @@ Rectangle {
     id: root
 
     property var props: ({})
+    // Тема виджета: WidgetTheme с его переопределениями (WidgetFrame) или общая root.tk.
+    property var tk: Theme
     property bool editing: false
 
     signal changeProps(var props)
 
-    radius: Theme.radiusLarge
-    color: Theme.alpha(Theme.surface, Theme.surfaceOpacity)
-    border.color: editing ? Theme.alpha(Theme.primary, 0.6) : Theme.alpha(Theme.border, 0.9)
-    border.width: 1
+    radius: root.tk.radiusLarge
+    color: root.tk.alpha(root.tk.surface, root.tk.surfaceOpacity)
+    border.color: editing ? root.tk.alpha(root.tk.primary, 0.6) : root.tk.alpha(root.tk.border, 0.9)
+    border.width: root.tk.borderWidth
     clip: true
 
     TextEdit {
@@ -24,10 +26,10 @@ Rectangle {
         readOnly: !root.editing
         selectByMouse: root.editing
         wrapMode: TextEdit.Wrap
-        color: Theme.text
-        selectionColor: Theme.alpha(Theme.primary, 0.5)
-        font.family: Theme.fontFamily
-        font.pixelSize: Theme.sizeBody
+        color: root.tk.text
+        selectionColor: root.tk.alpha(root.tk.primary, 0.5)
+        font.family: root.tk.fontFamily
+        font.pixelSize: root.tk.sizeBody
 
         // Сохраняем с задержкой, чтобы не писать файл на каждую букву.
         onTextChanged: if (root.editing) saveTimer.restart()

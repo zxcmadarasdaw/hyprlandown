@@ -88,7 +88,7 @@ function defaultMonitorLayout() {
         widgets: [
             { id: "clock-1", type: "clock", x: cx - 400, y: cy - 240, w: 320, h: 160, props: {} },
             { id: "note-1", type: "note", x: cx + 80, y: cy - 240, w: 320, h: 200,
-              props: { text: "Super+E: режим редактирования.\nПустое место: тянуть мышью.\nКолесо: масштаб." } }
+              props: { text: "Super+Shift+C: режим редактирования.\nПустое место: тянуть мышью.\nКолесо: масштаб." } }
         ]
     };
 }

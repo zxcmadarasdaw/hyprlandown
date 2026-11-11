@@ -57,6 +57,7 @@ class FakeHypr:
         self.cfg = ConfigManager(ctx)
         self.want = self.cfg.expected_fingerprint()
         self.keywords: list = []
+        self.options: dict = {}
         self.reloads = 0
         self.binds = self.config_binds()
 
@@ -91,6 +92,9 @@ class FakeHypr:
     def _keyword(self, cmd):
         self.keywords.append(cmd[2:])
         name, value = cmd[2], cmd[3]
+        if name not in ("bind", "bindm", "unbind"):
+            self.options[name] = value
+            return ok("ok")
         parts = value.split(",")
         mods, key = norm_mods(parts[0]), parts[1].strip().lower()
         if name == "unbind":

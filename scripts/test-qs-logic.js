@@ -12,7 +12,7 @@ function load(rel, app) {
     // Строка ".pragma library" - директива QML, для node её убираем.
     const src = fs.readFileSync(file, "utf8").replace(/^\.pragma library\s*$/m, "");
     const mod = { exports: {} };
-    vm.runInNewContext(src, { module: mod, Math, JSON, Object, Array, isFinite }, { filename: file });
+    vm.runInNewContext(src, { module: mod, Math, JSON, Object, Array, isFinite, RegExp }, { filename: file });
     return mod.exports;
 }
 
@@ -150,6 +150,37 @@ check("опции mpv без звука и с hwdec", /no-audio/.test(W.mpvOptio
     check("более новая схема обоев -> null", W.parseState('{"schema_version":2}') === null);
     check("сохранение и загрузка обоев дают то же самое",
         JSON.stringify(W.parseState(W.serialize(s2))) === JSON.stringify(s2));
+}
+
+// ---------- hyprdesk/lib/theme.js (этап 4: токены темы) ----------
+{
+    const T = load("theme.js");
+    const d = T.defaults();
+    check("тема: нет файла -> встроенная Aurora Glass", T.parse("").status === "default" && T.parse("").tokens.palette.primary === "#7AA2F7");
+    check("тема: битый JSON -> встроенная", T.parse("{нет").status === "default");
+    check("тема: более новая схема -> newer, встроенная", T.parse('{"schema_version":9}').status === "newer");
+    const fileText = require("fs").readFileSync(require("path").join(__dirname, "..", "themes", "cyber-terminal.json"), "utf8");
+    const ct = T.parse(fileText);
+    check("тема: готовая тема из themes/ читается", ct.status === "ok" && ct.tokens.palette.primary === "#39FF88" && ct.tokens.shape.radius_large === 10);
+    const bad = T.parse(JSON.stringify({schema_version: 1, id: "x", palette: {primary: "red", bg: "#000000"}, material: {opacity: "0.5"}}));
+    check("тема: неверные значения пропускаются, верные берутся",
+        bad.tokens.palette.primary === d.palette.primary && bad.tokens.palette.bg === "#000000" && bad.tokens.material.opacity === d.material.opacity);
+    check("тема: режим из обоев", T.parse(JSON.stringify({schema_version: 1, id: "x", mode: "wallpaper"})).tokens.mode === "wallpaper");
+    const tk = T.parse(JSON.stringify({schema_version: 1, id: "x", widget_overrides: {
+        "clock": {palette: {primary: "#111111"}, material: {opacity: 0.3}},
+        "clock-1": {palette: {primary: "#FFB86C"}},
+        "note-1": {palette: {text: "nope"}, motion: {spring: {damping: 30}}}}})).tokens;
+    check("override: id виджета точнее типа", T.override(tk, "clock-1", "clock", "palette", "primary") === "#FFB86C");
+    check("override: тип применяется ко всем виджетам типа", T.override(tk, "clock-2", "clock", "palette", "primary") === "#111111");
+    check("override: материал от типа", T.override(tk, "clock-1", "clock", "material", "opacity") === 0.3);
+    check("override: нет записи -> undefined", T.override(tk, "note-1", "note", "palette", "primary") === undefined);
+    check("override: неверный цвет игнорируется", T.override(tk, "note-1", "note", "palette", "text") === undefined);
+    check("override: вложенное поле", T.override(tk, "note-1", "note", "motion", "spring.damping") === 30);
+    check("override: шрифты не переопределяются", T.override(tk, "clock-1", "clock", "typography", "size_body") === undefined);
+    const fw = T.forWidget(tk, "clock-1", "clock");
+    check("forWidget: слияние тип + id + тема", fw.palette.primary === "#FFB86C" && fw.material.opacity === 0.3 && fw.palette.bg === d.palette.bg);
+    check("qtColor: #RRGGBBAA -> #AARRGGBB", T.qtColor("#11223344") === "#44112233" && T.qtColor("#112233") === "#112233");
+    check("qtColor: мусор -> чёрный", T.qtColor("red") === "#000000");
 }
 
 // ---------- manager/lib/keymap.js (редактор клавиш) ----------

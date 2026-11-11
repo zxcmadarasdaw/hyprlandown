@@ -36,6 +36,7 @@ from .session import SessionManager
 from .sessenv import detect_environment
 from .shell import ShellManager
 from .system import detect
+from .theme import ThemeEngine, parse_assignment
 from .ui import JsonUI, UI
 from .updater import UpdateManager
 
@@ -127,6 +128,16 @@ def build_parser() -> argparse.ArgumentParser:
     pf = add("perf", "профиль производительности")
     pf.add_argument("action", choices=["get", "set"])
     pf.add_argument("profile", nargs="?", choices=sorted(PERF_PROFILES))
+    th = add("theme", "темы и палитра (этап 4): готовые темы, палитра из обоев, цвета виджетов")
+    th.add_argument("action", choices=["status", "list", "set", "mode", "from-wallpaper", "override", "reset", "apply", "validate"])
+    th.add_argument("id", nargs="?", help="theme set ID | theme mode preset|wallpaper | theme override WIDGET | theme validate FILE")
+    th.add_argument("values", nargs="*", help="theme override WIDGET palette.primary=#FFB86C material.opacity=0.5")
+    th.add_argument("--path", help="theme from-wallpaper: файл обоев (картинка или видео)")
+    th.add_argument("--switch", action="store_true", help="theme from-wallpaper: сразу включить режим «из обоев»")
+    th.add_argument("--if-wallpaper-mode", action="store_true",
+                    help="theme from-wallpaper: ничего не делать, если режим не «из обоев» (вызов из оболочки)")
+    th.add_argument("--clear", action="store_true", help="theme override WIDGET --clear [поле]: убрать переопределение")
+    th.add_argument("--overrides", action="store_true", help="theme reset --overrides: сбросить и цвета виджетов")
     add("trust", "одобрить недоверенный манифест после просмотра").add_argument("id")
     add("version", "версия")
     return p
@@ -730,6 +741,133 @@ def cmd_perf(ctx, args) -> int:
     return 0
 
 
+def _theme_done(ctx, args, eng: ThemeEngine, tokens: dict, msg: str) -> int:
+    errors = eng.apply_live(tokens, SessionManager(ctx).hypr_env())
+    if args.json:
+        emit({"ok": not errors, "message": msg, "mode": tokens["mode"], "palette": tokens["palette"],
+              "live_errors": errors, "warnings": eng.warnings})
+        return 1 if errors else 0
+    ctx.ui.ok(msg + " Оболочка подхватит изменения сама.")
+    for e in errors:
+        ctx.ui.warn(f"Hyprland не принял {e}: применится при следующем запуске")
+    for w in eng.warnings:
+        ctx.ui.warn(w)
+    return 0
+
+
+def cmd_theme(ctx, args) -> int:
+    eng = ThemeEngine(ctx)
+    act = args.action
+    try:
+        if act in ("status", "list"):
+            data = eng.summary()
+            if args.json:
+                emit(data)
+                return 0
+            ctx.ui.info(f"Режим: {'из обоев' if data['mode'] == 'wallpaper' else 'готовая тема'}; тема: {data['preset']}")
+            for p in data["presets"]:
+                mark = "*" if p["id"] == data["preset"] else " "
+                ctx.ui.info(f" {mark} {p['id']:<22} {p['name']}: {p['description']}")
+            if act == "status":
+                if data["wallpaper"]:
+                    ctx.ui.info(f"Палитра обоев построена из: {data['wallpaper']['path']}")
+                for wid, ov in data["widget_overrides"].items():
+                    ctx.ui.info(f"Виджет {wid}: {json.dumps(ov, ensure_ascii=False)}")
+                for p in data["problems"]:
+                    ctx.ui.warn(p)
+            return 0
+        if act == "validate":
+            if not args.id:
+                ctx.ui.error("укажите файл: hyprown theme validate FILE")
+                return 2
+            from .theme import validate_tokens, palette_problems
+            data = json.loads(open(args.id, encoding="utf-8").read())
+            problems = validate_tokens(data) + (palette_problems(data["palette"]) if isinstance(data.get("palette"), dict) else [])
+            if args.json:
+                emit({"ok": not problems, "problems": problems})
+            else:
+                for p in problems:
+                    ctx.ui.error(p)
+                if not problems:
+                    ctx.ui.ok("Файл токенов допустим.")
+            return 0 if not problems else 2
+        if act == "set":
+            if not args.id:
+                ctx.ui.error("укажите тему: hyprown theme list")
+                return 2
+            return _theme_done(ctx, args, eng, eng.set_preset(args.id), f"Тема {args.id} включена.")
+        if act == "mode":
+            if args.id not in ("preset", "wallpaper"):
+                ctx.ui.error("режим: preset или wallpaper")
+                return 2
+            if args.id == "wallpaper" and not eng.state().get("wallpaper") and eng.current_wallpaper():
+                # Палитры обоев ещё нет: строим её по текущим обоям, чтобы режим сразу что-то значил.
+                args.path, args.switch = eng.current_wallpaper(), True
+                act = "from-wallpaper"
+            else:
+                tokens = eng.set_mode(args.id)
+                msg = "Палитра берётся из обоев." if args.id == "wallpaper" else "Палитра из готовой темы."
+                if args.id == "wallpaper" and not eng.state().get("wallpaper"):
+                    msg += " Обои не выбраны: палитра появится после выбора обоев (Super+W)."
+                return _theme_done(ctx, args, eng, tokens, msg)
+        if act == "from-wallpaper":
+            if args.if_wallpaper_mode and eng.state()["mode"] != "wallpaper":
+                if args.json:
+                    emit({"ok": True, "skipped": True, "message": "режим не «из обоев»"})
+                return 0
+            if not args.path:
+                args.path = eng.current_wallpaper()
+            if not args.path:
+                ctx.ui.error("обои не выбраны: укажите файл (--path ФАЙЛ) или выберите обои (Super+W)")
+                return 2
+            try:
+                from .colorx import ColorxError, extract_swatches
+            except ImportError:
+                class ColorxError(Exception):
+                    pass
+
+                def extract_swatches(ctx, path):
+                    raise ColorxError("модуль извлечения цветов (hyprown/colorx.py) ещё не установлен")
+            try:
+                swatches = extract_swatches(ctx, args.path)
+            except ColorxError as exc:
+                if args.switch:  # режим просили включить: включаем, цвета пока от темы
+                    return _theme_done(ctx, args, eng, eng.set_mode("wallpaper"),
+                                       f"Режим «из обоев» включён, но цвета не извлечены ({exc}): пока цвета темы.")
+                ctx.ui.error(f"Цвета из обоев не извлечены: {exc}. Палитра не изменена.")
+                return 1
+            tokens = eng.set_wallpaper_palette(args.path, swatches, switch_mode=args.switch)
+            return _theme_done(ctx, args, eng, tokens, "Палитра построена из обоев.")
+        if act == "override":
+            if not args.id:
+                ctx.ui.error("укажите id виджета (canvas.json): hyprown theme override clock palette.primary=#FFB86C")
+                return 2
+            if args.clear:
+                field = args.values[0] if args.values else None
+                return _theme_done(ctx, args, eng, eng.clear_override(args.id, field),
+                                   f"Переопределение {args.id}{'.' + field if field else ''} снято.")
+            if not args.values:
+                ctx.ui.error("укажите поле=значение, например palette.primary=#FFB86C")
+                return 2
+            assigns = dict(parse_assignment(v) for v in args.values)
+            return _theme_done(ctx, args, eng, eng.set_override(args.id, assigns),
+                               f"Виджет {args.id}: переопределение сохранено (смена обоев его не сбросит).")
+        if act == "reset":
+            RecoveryManager(ctx, Registry(ctx)).snapshot("before-theme-reset")
+            return _theme_done(ctx, args, eng, eng.reset(overrides=args.overrides),
+                               "Стандартная палитра Aurora Glass." + (" Цвета виджетов сброшены." if args.overrides else " Цвета виджетов сохранены."))
+        if act == "apply":
+            return _theme_done(ctx, args, eng, eng.write(), "Токены темы записаны.")
+    except (KeyError, ValueError, RuntimeError, OSError) as exc:
+        msg = exc.args[0] if exc.args else str(exc)
+        if args.json:
+            emit({"ok": False, "error": str(msg)})
+        else:
+            ctx.ui.error(str(msg))
+        return 2
+    return 2
+
+
 def cmd_trust(ctx, args) -> int:
     reg = _registry(ctx)
     comp = reg.get(args.id)
@@ -753,5 +891,5 @@ HANDLERS = {
     "component": cmd_component, "preview": cmd_preview, "desktop": cmd_desktop, "shell": cmd_shell,
     "ipc": cmd_ipc, "manager": cmd_manager, "attach": cmd_attach, "detach": cmd_detach,
     "session": cmd_session, "keys": cmd_keys, "config": cmd_config, "update": cmd_update,
-    "recovery": cmd_recovery, "perf": cmd_perf, "trust": cmd_trust, "version": cmd_version,
+    "recovery": cmd_recovery, "perf": cmd_perf, "theme": cmd_theme, "trust": cmd_trust, "version": cmd_version,
 }

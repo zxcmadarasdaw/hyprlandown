@@ -61,6 +61,8 @@ Singleton {
         clearVideoError(monitor);
         revision++;
         file.setText(WallLib.serialize(state));
+        // Этап 4: в режиме «из обоев» палитра строится заново (Theme решает, нужно ли).
+        Theme.wallpaperChanged(path);
     }
 
     function step(monitor, dir) {

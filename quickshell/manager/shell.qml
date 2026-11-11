@@ -79,17 +79,7 @@ ShellRoot {
             actions: [{label: "Проверить снова", args: ["deps", "--json"]}]
         } }
         Component { id: widgets; ComponentsPage { title: "Widgets"; filter: "widget" } }
-        Component { id: themes; ActionPage {
-            title: "Themes & Wallpapers"
-            hint: "Обои переключаются живьём через IPC оболочки. Темы по токенам появятся на этапе 4 (docs/TOKENS.md)."
-            actions: [
-                {label: "Следующие обои", args: ["ipc", "wallpaper", "next"]},
-                {label: "Предыдущие", args: ["ipc", "wallpaper", "prev"]},
-                {label: "Сетка превью", args: ["ipc", "wallpaper", "picker"]},
-                {label: "Статус обоев", args: ["ipc", "wallpaper", "status"]},
-                {label: "Сбросить на градиент", args: ["ipc", "wallpaper", "reset"], confirm: true}
-            ]
-        } }
+        Component { id: themes; ThemesPage {} }
         Component { id: plugins; ComponentsPage { title: "Experimental Plugins"; filter: "experimental" } }
         Component { id: updates; ActionPage {
             title: "Updates"

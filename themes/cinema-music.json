@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "cinema-music",
+  "name": "Cinema & Music",
+  "description": "Музыка и кино: тёплый янтарь, глубокий фон, медленные мягкие переходы.",
+  "palette": {
+    "source": "preset",
+    "bg": "#120D0B",
+    "surface": "#1C1512",
+    "surface_alt": "#261D18",
+    "primary": "#F5A35C",
+    "secondary": "#F07A95",
+    "accent": "#F4D58D",
+    "text": "#FFF3E8",
+    "text_muted": "#C2AE9F",
+    "border": "#3B2D25",
+    "success": "#A3D977",
+    "warning": "#F2C14E",
+    "error": "#F47A72"
+  },
+  "material": {
+    "opacity": 0.55,
+    "blur_radius": 32,
+    "tint_strength": 0.4,
+    "highlight_strength": 0.6,
+    "glow_strength": 0.55,
+    "border_width": 1
+  },
+  "motion": {
+    "duration_fast_ms": 140,
+    "duration_normal_ms": 280,
+    "duration_slow_ms": 520,
+    "easing": "ease-in-out",
+    "spring": {
+      "stiffness": 180,
+      "damping": 22,
+      "mass": 1
+    }
+  },
+  "shape": {
+    "radius_small": 10,
+    "radius_medium": 18,
+    "radius_large": 26,
+    "spacing_unit": 8
+  },
+  "typography": {
+    "font_family": "Inter",
+    "font_family_mono": "JetBrains Mono",
+    "size_small": 12,
+    "size_body": 14,
+    "size_title": 20
+  },
+  "effects": {
+    "quality": "high",
+    "liquid_glass": true,
+    "spring_physics": true
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "developer-workspace",
+  "name": "Developer Workspace",
+  "description": "Программирование: спокойные приглушённые цвета, минимум отвлекающих эффектов.",
+  "palette": {
+    "source": "preset",
+    "bg": "#1E222A",
+    "surface": "#252A33",
+    "surface_alt": "#2C313C",
+    "primary": "#61AFEF",
+    "secondary": "#C678DD",
+    "accent": "#56B6C2",
+    "text": "#E6E9EF",
+    "text_muted": "#9DA5B4",
+    "border": "#3A404C",
+    "success": "#98C379",
+    "warning": "#E5C07B",
+    "error": "#E06C75"
+  },
+  "material": {
+    "opacity": 0.85,
+    "blur_radius": 10,
+    "tint_strength": 0.2,
+    "highlight_strength": 0.2,
+    "glow_strength": 0.1,
+    "border_width": 1
+  },
+  "motion": {
+    "duration_fast_ms": 120,
+    "duration_normal_ms": 220,
+    "duration_slow_ms": 420,
+    "easing": "ease-out",
+    "spring": {
+      "stiffness": 180,
+      "damping": 22,
+      "mass": 1
+    }
+  },
+  "shape": {
+    "radius_small": 6,
+    "radius_medium": 10,
+    "radius_large": 14,
+    "spacing_unit": 8
+  },
+  "typography": {
+    "font_family": "Inter",
+    "font_family_mono": "JetBrains Mono",
+    "size_small": 12,
+    "size_body": 14,
+    "size_title": 20
+  },
+  "effects": {
+    "quality": "balanced",
+    "liquid_glass": true,
+    "spring_physics": false
+  }
+}

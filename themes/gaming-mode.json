@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "gaming-mode",
+  "name": "Gaming Mode",
+  "description": "Игры: яркие акценты, без тяжёлых эффектов (simple), короткие анимации.",
+  "palette": {
+    "source": "preset",
+    "bg": "#0D0A12",
+    "surface": "#17111F",
+    "surface_alt": "#21182C",
+    "primary": "#FF6FDF",
+    "secondary": "#A78BFA",
+    "accent": "#22D3EE",
+    "text": "#F5EEFF",
+    "text_muted": "#B3A6C9",
+    "border": "#34274A",
+    "success": "#4ADE80",
+    "warning": "#FBBF24",
+    "error": "#F87171"
+  },
+  "material": {
+    "opacity": 0.9,
+    "blur_radius": 0,
+    "tint_strength": 0.3,
+    "highlight_strength": 0.2,
+    "glow_strength": 0.0,
+    "border_width": 1
+  },
+  "motion": {
+    "duration_fast_ms": 80,
+    "duration_normal_ms": 140,
+    "duration_slow_ms": 220,
+    "easing": "ease-out",
+    "spring": {
+      "stiffness": 180,
+      "damping": 22,
+      "mass": 1
+    }
+  },
+  "shape": {
+    "radius_small": 8,
+    "radius_medium": 14,
+    "radius_large": 22,
+    "spacing_unit": 8
+  },
+  "typography": {
+    "font_family": "Inter",
+    "font_family_mono": "JetBrains Mono",
+    "size_small": 12,
+    "size_body": 14,
+    "size_title": 20
+  },
+  "effects": {
+    "quality": "simple",
+    "liquid_glass": false,
+    "spring_physics": false
+  }
+}

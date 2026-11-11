@@ -15,6 +15,7 @@ Singleton {
 
     readonly property string canvasFile: stateDir + "/canvas.json"
     readonly property string wallpaperFile: stateDir + "/wallpaper.json"
+    readonly property string tokensFile: stateDir + "/tokens.json"
     readonly property string gpuConf: configDir + "/hypr/gpu.conf"
     readonly property string thumbDir: cacheDir + "/thumbs"
     readonly property string defaultWallpaperFolder: home + "/Pictures/Wallpapers"

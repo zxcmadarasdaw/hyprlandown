@@ -1,7 +1,8 @@
 """Recovery Manager: снимки состояния, откат установок, принудительный safe-режим.
 
 Что считается «состоянием»: components.json, canvas.json, wallpaper.json,
-performance.conf, shell.json, trust.json из ~/.local/state/hyprdesk.
+performance.conf, shell.json, trust.json, theme.json из ~/.local/state/hyprdesk.
+Производные файлы темы (tokens.json, theme.conf) не хранятся: их пересобирает ThemeEngine.
 Пользовательские конфиги вне репозитория не копируются: их защищают резервные
 копии ссылок (ConfigManager.apply_links) и откат транзакции установки.
 """
@@ -19,7 +20,7 @@ from .manifest import Component
 from .registry import Registry, atomic_write
 
 STATE_FILES = ("components.json", "canvas.json", "wallpaper.json", "performance.conf",
-               "shell.json", "trust.json")
+               "shell.json", "trust.json", "theme.json")
 KEEP_SNAPSHOTS = 10
 
 
@@ -74,6 +75,9 @@ class RecoveryManager:
             if f.is_file():
                 atomic_write(self.ctx.state_dir / name, f.read_text(encoding="utf-8"))
                 restored.append(name)
+        if "theme.json" in restored:
+            from .theme import ThemeEngine  # поздний импорт: theme не нужен остальному recovery
+            ThemeEngine(self.ctx).write()
         return restored
 
     # ---------- транзакции установки ----------

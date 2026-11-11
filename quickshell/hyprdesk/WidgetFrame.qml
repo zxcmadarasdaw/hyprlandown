@@ -19,6 +19,13 @@ Item {
     property bool editing: false
     property real zoom: 1
 
+    // Цвета виджета: тема + его переопределения (этап 4).
+    WidgetTheme {
+        id: wtheme
+        wid: frame.wid
+        wtype: frame.wtype
+    }
+
     readonly property var props: {
         try { return JSON.parse(propsJson); } catch (e) { return {}; }
     }
@@ -56,6 +63,7 @@ Item {
         id: clockComponent
         ClockWidget {
             props: frame.props
+            tk: wtheme
             editing: frame.editing
         }
     }
@@ -64,6 +72,7 @@ Item {
         id: noteComponent
         NoteWidget {
             props: frame.props
+            tk: wtheme
             editing: frame.editing
             onChangeProps: p => frame.propsEdited(frame.index, p)
         }

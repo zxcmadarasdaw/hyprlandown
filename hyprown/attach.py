@@ -32,6 +32,7 @@ from .recovery import RecoveryManager
 from .registry import Registry, atomic_write
 from .sessenv import Environment, detect_environment
 from .system import detect
+from .theme import ThemeEngine
 
 ATTACH_COMPONENTS = ("desktop-core", "quickshell-shell", "wallpaper-engine")  # login-session не входит намеренно
 EXIT_UNAVAILABLE = 6
@@ -80,9 +81,10 @@ def classify_settings(ctx: Ctx) -> dict:
     new_session.append("hypr/session/hyprland-session: маркер аварии и safe-режим работают только при входе через SDDM")
     return {
         "ipc": ["горячие клавиши (hyprctl keyword unbind/bind)", "запуск и перезапуск Quickshell, обоев и виджетов",
-                "вызовы hyprown ipc (холст, обои)"],
+                "вызовы hyprown ipc (холст, обои)",
+                "тема: цвета оболочки и Manager (tokens.json), цвета рамок окон и скругление (hyprctl keyword)"],
         "reload": ["appearance.conf: скругления, отступы, блюр, тени, анимации", "input.conf: раскладки и мышь",
-                   "performance.conf: профиль производительности", "keybinds.conf и keybinds.user.conf",
+                   "performance.conf: профиль производительности", "theme.conf: цвета рамок активной темы", "keybinds.conf и keybinds.user.conf",
                    "ВАЖНО: reload перечитывает тот же главный файл, а не переключает на другой"],
         "new_session": new_session,
     }
@@ -160,6 +162,7 @@ class AttachEngine:
         else:
             rep.add("config", "Конфигурация", "skip", "--no-config")
         self._keys(rep, st, env, env_info, ours)
+        self._theme(rep, env, ours)
         self._start(rep, env)
         rep.settings = classify_settings(self.ctx)
         self._show_settings(rep, ours)
@@ -347,6 +350,38 @@ class AttachEngine:
             ui.ok(f"Клавиши применены через IPC: {res['bound']} привязок.")
             rep.add("keys", "Горячие клавиши", "ok", f"IPC: {res['bound']} привязок")
             st["ipc_keys"] = True
+
+    def _theme(self, rep: Report, env: dict, ours) -> None:
+        """Токены темы для оболочки и цвета рамок окон: через IPC, без reload и без выхода.
+
+        Сессия на нашем конфиге уже читает theme.conf: IPC не нужен. Чужой сессии рамки
+        перекрашиваются только с согласия (до hyprctl reload или нового входа)."""
+        if self.dry:
+            rep.add("theme", "Тема", "skip", "dry-run")
+            return
+        eng = ThemeEngine(self.ctx)
+        try:
+            tokens = eng.write()
+        except (OSError, RuntimeError) as exc:
+            self.ui.warn(f"Тема не записана: {exc}. Оболочка возьмёт встроенные цвета.")
+            rep.add("theme", "Тема", "warn", str(exc))
+            return
+        name = tokens.get("name", tokens["id"]) + (" (палитра из обоев)" if tokens["mode"] == "wallpaper" else "")
+        if ours:
+            errors = []
+        elif self.ui.confirm("Перекрасить рамки окон в цвета темы HyprlandOwn (до hyprctl reload или нового входа)?",
+                             default=True):
+            errors = eng.apply_live(tokens, env)
+        else:
+            self.ui.info(f"Тема {name}: только оболочка; рамки окон Hyprland не тронуты.")
+            rep.add("theme", "Тема", "deferred", f"{name}: рамки окон не перекрашены (отказ)")
+            return
+        if errors:
+            self.ui.warn("Цвета рамок не применены: " + "; ".join(errors[:2]))
+            rep.add("theme", "Тема", "warn", f"{name}; рамки: {errors[0]}")
+        else:
+            self.ui.ok(f"Тема: {name}.")
+            rep.add("theme", "Тема", "ok", name)
 
     def _start(self, rep: Report, env: dict) -> None:
         ui = self.ui

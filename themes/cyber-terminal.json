@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "cyber-terminal",
+  "name": "Cyber Terminal",
+  "description": "Терминалы и системная информация: неон на чёрном, моноширинный шрифт.",
+  "palette": {
+    "source": "preset",
+    "bg": "#05090A",
+    "surface": "#0B1412",
+    "surface_alt": "#10201C",
+    "primary": "#39FF88",
+    "secondary": "#00E5FF",
+    "accent": "#B6FF3B",
+    "text": "#D7FFE9",
+    "text_muted": "#7FB59A",
+    "border": "#1D3A31",
+    "success": "#5CF2A0",
+    "warning": "#FFD23F",
+    "error": "#FF4D6D"
+  },
+  "material": {
+    "opacity": 0.78,
+    "blur_radius": 12,
+    "tint_strength": 0.45,
+    "highlight_strength": 0.3,
+    "glow_strength": 0.6,
+    "border_width": 1
+  },
+  "motion": {
+    "duration_fast_ms": 90,
+    "duration_normal_ms": 160,
+    "duration_slow_ms": 300,
+    "easing": "linear",
+    "spring": {
+      "stiffness": 180,
+      "damping": 22,
+      "mass": 1
+    }
+  },
+  "shape": {
+    "radius_small": 3,
+    "radius_medium": 6,
+    "radius_large": 10,
+    "spacing_unit": 8
+  },
+  "typography": {
+    "font_family": "JetBrains Mono",
+    "font_family_mono": "JetBrains Mono",
+    "size_small": 12,
+    "size_body": 13,
+    "size_title": 18
+  },
+  "effects": {
+    "quality": "balanced",
+    "liquid_glass": true,
+    "spring_physics": true
+  }
+}

@@ -12,6 +12,7 @@ import Quickshell.Hyprland
 //   (окна приложений)
 //   Top         Bar              - панель
 //   Overlay     WallpaperPicker  - сетка обоев, только когда открыта
+//   Overlay     ThemePicker      - выбор темы (Ctrl+Alt+F), только когда открыт
 //
 // Управление снаружи (хоткеи Hyprland в hypr/keybinds.conf):
 //   qs ipc -c hyprdesk call canvas toggleEdit
@@ -19,6 +20,7 @@ import Quickshell.Hyprland
 //   qs ipc -c hyprdesk call wallpaper next | prev | picker | reset
 //   qs ipc -c hyprdesk call wallpaper set /путь/к/файлу
 //   qs ipc -c hyprdesk call wallpaper setAll /путь/к/файлу
+//   qs ipc -c hyprdesk call theme picker | reload | status
 ShellRoot {
     Variants {
         model: Quickshell.screens
@@ -40,6 +42,11 @@ ShellRoot {
         WallpaperPicker {}
     }
 
+    LazyLoader {
+        active: Theme.pickerOpen
+        ThemePicker {}
+    }
+
     IpcHandler {
         target: "canvas"
 
@@ -54,6 +61,27 @@ ShellRoot {
         // Камера фокусного монитора: центр мира, масштаб 100%.
         function resetCamera(): void {
             CanvasStore.cameraResetRequested(WallpaperStore.focusedMonitor());
+        }
+    }
+
+    // Тема (этап 4). Палитру и токены пишет `hyprown theme`; здесь окно выбора и перечитывание.
+    IpcHandler {
+        target: "theme"
+
+        function picker(): void {
+            if (Theme.pickerOpen)
+                Theme.closePicker();
+            else
+                Theme.openPicker(WallpaperStore.focusedMonitor());
+        }
+
+        function reload(): void {
+            Theme.reloadFile();
+        }
+
+        function status(): string {
+            return "theme=" + Theme.themeId + " mode=" + Theme.mode + " palette=" + Theme.paletteSource
+                + " tokens=" + Theme.status;
         }
     }
 

@@ -199,6 +199,15 @@ arg = "$qsipc wallpaper picker"
 # Раскладка как в стандартном конфиге Hyprland: Super+Q терминал, Super+C закрыть окно,
 # Super+M выход, Super+E файловый менеджер. Manager живёт на Super+D.
 [[bind]]
+id = "theme.picker"
+title = "Тема: выбор (готовые и из обоев)"
+category = "Тема (этап 4): готовые темы и палитра из обоев"
+mods = "CTRL ALT"
+key = "F"
+dispatcher = "exec"
+arg = "$qsipc theme picker"
+
+[[bind]]
 id = "manager"
 title = "HyprlandOwn Manager"
 category = "HyprlandOwn Manager: компоненты, зависимости, диагностика, восстановление"
