@@ -31,6 +31,7 @@ from pathlib import Path
 
 from .context import Ctx
 from .registry import atomic_write
+from .sessenv import pid_alive, read_cmdline
 
 QS_BINS = ("qs", "quickshell")
 FAST_FAIL_SEC = 3.0       # процесс умер быстрее: стратегия не работает
@@ -51,6 +52,11 @@ class Caps:
         d = dict(self.__dict__)
         d["help_text"] = self.help_text[:4000]
         return d
+
+
+def is_supervisor_cmd(argv: list[str]) -> bool:
+    """Командная строка нашего супервизора: ... hyprown shell run."""
+    return any("hyprown" in a for a in argv) and "shell" in argv and "run" in argv
 
 
 def parse_caps(help_text: str, binary: str, version: str = "") -> Caps:
@@ -132,6 +138,25 @@ class ShellManager:
             os.kill(pid, 0)
         except (OSError, SystemError):
             return None
+        # Номер процесса мог достаться постороннему после сбоя: сверяем командную строку.
+        # Где прочитать нельзя (не Linux), доверяем pid-файлу.
+        argv = read_cmdline(self.ctx, pid)
+        if argv is not None and not is_supervisor_cmd(argv):
+            return None
+        return pid
+
+    def child_path(self, env: dict) -> Path:
+        return self.lock_path(env).with_suffix(".child")
+
+    def child_pid(self, env: dict) -> int | None:
+        """qs, запущенный нашим супервизором (для остановки без pkill по имени)."""
+        try:
+            pid = int(self.child_path(env).read_text().strip())
+        except (OSError, ValueError):
+            return None
+        argv = read_cmdline(self.ctx, pid)
+        if not pid_alive(self.ctx, pid) or argv is None or not argv or Path(argv[0]).name not in QS_BINS:
+            return None
         return pid
 
     def log_file(self) -> Path:
@@ -207,6 +232,10 @@ class ShellManager:
                 t0 = self.clock()
                 child = self.popen(args, env=env, stdin=subprocess.DEVNULL, stdout=lf, stderr=subprocess.STDOUT)
                 stop["child"] = child
+                try:
+                    atomic_write(self.child_path(env), f"{child.pid}\n")
+                except (OSError, AttributeError, TypeError):
+                    pass
                 self._save_active(strategies[idx], caps)
                 rc = child.wait()
                 stop["child"] = None
@@ -263,6 +292,13 @@ class ShellManager:
             if not self.running_pid(env):
                 break
             self.sleep(0.1)
+        left = self.child_pid(env)  # дочерний qs пережил супервизор (редко): гасим только проверенный
+        if left:
+            try:
+                os.kill(left, signal.SIGTERM)
+            except OSError:
+                pass
+        self.child_path(env).unlink(missing_ok=True)
         return True
 
     def restart(self, env: dict | None = None) -> int:

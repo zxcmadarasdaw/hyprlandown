@@ -1,0 +1,226 @@
+# Единый реестр горячих клавиш HyprlandOwn.
+#
+# Источник истины: отсюда генерируется hypr/keybinds.conf (hyprown keys render --write),
+# отсюда же берётся проверка конфликтов, живая сверка с `hyprctl binds` и редактор клавиш
+# в Manager. Руками hypr/keybinds.conf не правим: тест сверяет файл с реестром.
+#
+# Поля записи:
+#   id          стабильный идентификатор (на него ссылаются пользовательские переназначения)
+#   title       подпись в редакторе
+#   category    группа в редакторе и комментарий в конфиге
+#   kind        bind (обычная) или bindm (мышь)
+#   mods        SUPER, CTRL, ALT, SHIFT через пробел; SUPER в конфиге пишется как $mainMod
+#   key         имя клавиши Hyprland (RETURN, SPACE, left, 1, mouse:272)
+#   dispatcher  диспетчер Hyprland
+#   arg         аргумент (может содержать $terminal, $menu, $qsipc из hypr/hyprland.conf)
+#   keys        вместо key: список клавиш; в arg подставляется {k} (цифры рабочих пространств)
+#   preview_mods / preview_key  замена только в Preview Mode (чужие глобальные клавиши KDE)
+#   critical    true: клавиша аварийная (выход), её нельзя отключить без явного --force
+
+schema = 1
+
+[[bind]]
+id = "terminal"
+title = "Терминал"
+category = "Программы"
+mods = "SUPER"
+key = "RETURN"
+dispatcher = "exec"
+arg = "$terminal"
+
+# Alt+Space в Preview перехватывает KRunner/меню окна KDE, поэтому там лаунчер на Alt+R.
+[[bind]]
+id = "launcher"
+title = "Лаунчер"
+category = "Программы"
+mods = "SUPER"
+key = "SPACE"
+dispatcher = "exec"
+arg = "$menu"
+preview_key = "R"
+
+[[bind]]
+id = "window.close"
+title = "Закрыть окно"
+category = "Окна"
+mods = "SUPER"
+key = "Q"
+dispatcher = "killactive"
+
+[[bind]]
+id = "window.fullscreen"
+title = "Полный экран"
+category = "Окна"
+mods = "SUPER"
+key = "F"
+dispatcher = "fullscreen"
+
+[[bind]]
+id = "window.float"
+title = "Плавающее окно"
+category = "Окна"
+mods = "SUPER"
+key = "V"
+dispatcher = "togglefloating"
+
+[[bind]]
+id = "window.pseudo"
+title = "Псевдотайлинг"
+category = "Окна"
+mods = "SUPER"
+key = "P"
+dispatcher = "pseudo"
+
+[[bind]]
+id = "window.split"
+title = "Смена направления деления"
+category = "Окна"
+mods = "SUPER"
+key = "J"
+dispatcher = "togglesplit"
+
+[[bind]]
+id = "session.exit"
+title = "Выход из сессии"
+category = "Выход из сессии. Штатный выход снимает маркер аварии (см. hypr/session)."
+mods = "SUPER SHIFT"
+key = "E"
+dispatcher = "exit"
+critical = true
+
+[[bind]]
+id = "focus.left"
+title = "Фокус влево"
+category = "Фокус"
+mods = "SUPER"
+key = "left"
+dispatcher = "movefocus"
+arg = "l"
+
+[[bind]]
+id = "focus.right"
+title = "Фокус вправо"
+category = "Фокус"
+mods = "SUPER"
+key = "right"
+dispatcher = "movefocus"
+arg = "r"
+
+[[bind]]
+id = "focus.up"
+title = "Фокус вверх"
+category = "Фокус"
+mods = "SUPER"
+key = "up"
+dispatcher = "movefocus"
+arg = "u"
+
+[[bind]]
+id = "focus.down"
+title = "Фокус вниз"
+category = "Фокус"
+mods = "SUPER"
+key = "down"
+dispatcher = "movefocus"
+arg = "d"
+
+[[bind]]
+id = "workspace"
+title = "Рабочее пространство {k}"
+category = "Рабочие пространства"
+mods = "SUPER"
+keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+dispatcher = "workspace"
+arg = "{k}"
+
+[[bind]]
+id = "workspace.move"
+title = "Окно на пространство {k}"
+category = "Рабочие пространства"
+mods = "SUPER SHIFT"
+keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+dispatcher = "movetoworkspace"
+arg = "{k}"
+
+[[bind]]
+id = "canvas.edit"
+title = "Холст виджетов: режим правки"
+category = "Холст виджетов (этап 2)"
+mods = "SUPER"
+key = "E"
+dispatcher = "exec"
+arg = "$qsipc canvas toggleEdit"
+
+[[bind]]
+id = "canvas.reset"
+title = "Холст виджетов: сброс камеры"
+category = "Холст виджетов (этап 2)"
+mods = "SUPER CTRL"
+key = "0"
+dispatcher = "exec"
+arg = "$qsipc canvas resetCamera"
+
+[[bind]]
+id = "shell.restart"
+title = "Перезапуск оболочки"
+category = "Перезапуск оболочки, если она зависла или упала"
+mods = "SUPER CTRL"
+key = "R"
+dispatcher = "exec"
+arg = "~/.local/bin/hyprown shell restart"
+
+[[bind]]
+id = "wallpaper.next"
+title = "Обои: следующие"
+category = "Обои (этап 3): следующие / предыдущие / сетка превью"
+mods = "SUPER"
+key = "W"
+dispatcher = "exec"
+arg = "$qsipc wallpaper next"
+
+[[bind]]
+id = "wallpaper.prev"
+title = "Обои: предыдущие"
+category = "Обои (этап 3): следующие / предыдущие / сетка превью"
+mods = "SUPER CTRL"
+key = "W"
+dispatcher = "exec"
+arg = "$qsipc wallpaper prev"
+
+[[bind]]
+id = "wallpaper.picker"
+title = "Обои: сетка превью"
+category = "Обои (этап 3): следующие / предыдущие / сетка превью"
+mods = "SUPER SHIFT"
+key = "W"
+dispatcher = "exec"
+arg = "$qsipc wallpaper picker"
+
+# В стандартном конфиге Hyprland Super+M выходит из сессии. Здесь M открывает Manager,
+# а выход живёт на Super+Shift+E (session.exit).
+[[bind]]
+id = "manager"
+title = "HyprlandOwn Manager"
+category = "HyprlandOwn Manager: компоненты, зависимости, диагностика, восстановление"
+mods = "SUPER"
+key = "M"
+dispatcher = "exec"
+arg = "~/.local/bin/hyprown manager"
+
+[[bind]]
+id = "mouse.move"
+title = "Перетаскивание окна мышью"
+category = "Мышь: перетаскивание и размер окон"
+kind = "bindm"
+mods = "SUPER"
+key = "mouse:272"
+dispatcher = "movewindow"
+
+[[bind]]
+id = "mouse.resize"
+title = "Изменение размера окна мышью"
+category = "Мышь: перетаскивание и размер окон"
+kind = "bindm"
+mods = "SUPER"
+key = "mouse:273"
+dispatcher = "resizewindow"

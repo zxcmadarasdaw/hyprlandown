@@ -15,6 +15,9 @@ from .context import Ctx
 from .pkg import DnfAdapter, version_ge
 from .registry import Registry
 from .session import SessionManager, SESSION_FILES, SESSIONS_DIR, WRAPPER
+from .keybinds import KeyManager, render_default, validate_registry
+from .procman import ProcessManager
+from .sessenv import detect_environment
 from .shell import ShellManager
 from .system import SystemInfo, detect, fedora_major
 
@@ -103,6 +106,44 @@ def run_all(ctx: Ctx, reg: Registry, info: SystemInfo | None = None) -> list[dic
     else:
         out.append(_c("running-config", "Запущенная сессия использует конфиг проекта", "skip",
                       "Hyprland не запущен (проверка выполняется внутри сессии или Preview)"))
+
+    # --- окружение и горячие клавиши ---
+    envi = detect_environment(ctx)
+    out.append(_c("environment", "Окружение", "ok" if envi.kind != "none" else "skip",
+                  envi.title + (f", экземпляр {envi.instance.sig}" if envi.instance else ""),
+                  "" if envi.can_attach else "Attach: " + envi.attach_block))
+    if len(envi.others) > 0:
+        out.append(_c("instances", "Несколько экземпляров Hyprland", "warn",
+                      "; ".join(i.sig for i in envi.others) + ": команды затрагивают только текущий",
+                      "укажите экземпляр явно: hyprown attach --instance СИГНАТУРА"))
+    keys = KeyManager(ctx)
+    probs = validate_registry(keys.binds)
+    gen = keys.default_conf_path()
+    if not gen.exists() or gen.read_text(encoding="utf-8") != render_default(keys.binds):
+        probs.append("hypr/keybinds.conf не совпадает с реестром (hyprown keys render --write)")
+    out.append(_c("keys-registry", "Реестр горячих клавиш", "fail" if probs else "ok",
+                  "; ".join(probs) if probs else f"{len(keys.binds)} привязок, дублей и перехвата KDE нет",
+                  "hyprown keys verify" if probs else ""))
+    if keys.user_conf_hand_edited():
+        out.append(_c("keys-user-conf", "keybinds.user.conf правился вручную", "warn",
+                      str(keys.store.conf), "переназначайте клавиши через hyprown keys: файл с правками не перезаписывается без вашего согласия"))
+    for t in keys.missing_targets():
+        out.append(_c("keys-target", "Программа для клавиши", "warn", t, "bash install.sh"))
+    if envi.instance:
+        live = keys.live(envi.target_env(ctx.env), "preview" if envi.kind == "preview" else "desktop")
+        if live["ok"] is None:
+            out.append(_c("keys-live", "Клавиши запущенной сессии (hyprctl binds)", "skip", live["error"]))
+        else:
+            bad = [i for i in live["items"] if i["status"] != "ok"]
+            danger = [i for i in bad if i.get("danger")]
+            detail = "; ".join(f"{i['combo']}: {i['detail']}" for i in bad[:4]) or f"{live['summary'].get('ok', 0)} совпадают"
+            out.append(_c("keys-live", "Клавиши запущенной сессии (hyprctl binds)",
+                          "fail" if danger else ("warn" if bad else "ok"), detail,
+                          "hyprown attach (применит наши клавиши через IPC с вашего разрешения)" if bad else ""))
+        procs = ProcessManager(ctx, sh).status(envi.target_env(ctx.env))
+        sh_row = procs[0]
+        out.append(_c("session-units", "Процессы HyprlandOwn в сессии", "ok" if sh_row["state"] == "running" else "warn",
+                      sh_row["detail"], "" if sh_row["state"] == "running" else "hyprown session start-all"))
 
     # --- вход в сессию ---
     for f in SESSION_FILES:

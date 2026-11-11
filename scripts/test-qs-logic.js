@@ -7,8 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-function load(rel) {
-    const file = path.join(__dirname, "..", "quickshell", "hyprdesk", "lib", rel);
+function load(rel, app) {
+    const file = path.join(__dirname, "..", "quickshell", app || "hyprdesk", "lib", rel);
     // Строка ".pragma library" - директива QML, для node её убираем.
     const src = fs.readFileSync(file, "utf8").replace(/^\.pragma library\s*$/m, "");
     const mod = { exports: {} };
@@ -150,6 +150,37 @@ check("опции mpv без звука и с hwdec", /no-audio/.test(W.mpvOptio
     check("более новая схема обоев -> null", W.parseState('{"schema_version":2}') === null);
     check("сохранение и загрузка обоев дают то же самое",
         JSON.stringify(W.parseState(W.serialize(s2))) === JSON.stringify(s2));
+}
+
+// ---------- manager/lib/keymap.js (редактор клавиш) ----------
+{
+    const K = load("keymap.js", "manager");
+    const META = 0x10000000, CTRL = 0x04000000, ALT = 0x08000000, SHIFT = 0x02000000;
+    check("буква Q -> Q", K.keyName(0x51) === "Q");
+    check("цифра 5 -> 5", K.keyName(0x35) === "5");
+    check("F5 -> F5", K.keyName(0x01000034) === "F5");
+    check("Enter -> RETURN", K.keyName(0x01000005) === "RETURN" && K.keyName(0x01000004) === "RETURN");
+    check("пробел -> SPACE", K.keyName(0x20) === "SPACE");
+    check("стрелка влево -> left", K.keyName(0x01000012) === "left");
+    check("одиночный модификатор не комбинация", K.keyName(0x01000022) === "" && K.keyName(0x01000020) === "");
+    check("неизвестная клавиша -> пусто", K.keyName(0x01ffffff) === "");
+    check("Meta+Shift -> SUPER SHIFT", K.modsName(META | SHIFT) === "SUPER SHIFT");
+    check("порядок модификаторов канонический", K.modsName(ALT | CTRL | META) === "SUPER CTRL ALT");
+    check("без модификаторов -> пусто", K.modsName(0) === "");
+    check("comboText Super+M", K.comboText("SUPER", "M") === "Super+M");
+    check("comboText Ctrl+Alt+Return", K.comboText("CTRL ALT", "RETURN") === "Ctrl+Alt+Return");
+    check("comboText без модификатора", K.comboText("", "F5") === "F5");
+    check("verdict: чисто", K.verdict([]).clean && !K.verdict([]).blocked);
+    check("verdict: error блокирует", K.verdict([{level: "error"}, {level: "warn"}]).blocked
+        && !K.verdict([{level: "error"}]).needsForce);
+    check("verdict: warn требует --force", K.verdict([{level: "warn"}]).needsForce
+        && !K.verdict([{level: "warn"}]).blocked);
+    const g = K.groupByCategory([{id: "a", category: "X"}, {id: "b", category: "Y"}, {id: "c", category: "X"}, {id: "d"}]);
+    check("группы сохраняют порядок реестра", g.map(x => x.category).join() === "X,Y,Прочее"
+        && g[0].items.length === 2);
+    const a = K.setArgs("launcher", "SUPER", "SPACE", false);
+    check("setArgs без force", a.join(" ") === "keys set launcher --mods SUPER --key SPACE --apply --yes");
+    check("setArgs с force", K.setArgs("x", "", "F5", true).slice(-1)[0] === "--force");
 }
 
 console.log("Итог: PASS=" + pass + " FAIL=" + fail);

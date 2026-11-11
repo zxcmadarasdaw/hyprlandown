@@ -62,6 +62,30 @@ dotfiles/
 тестами на Windows с моками; **на Fedora не запускалась**: `docs/FEDORA_VERIFY.md`.
 Выбор GPU (amd/nvidia, этап 14) пока определяется автоматически и только для декодера видео-обоев.
 
+## Подключение к текущей сессии Hyprland (Live Session Attach)
+
+Если вы уже в Hyprland, HyprlandOwn подключается **к этой же сессии**: без выхода из системы и без
+второго композитора внутри первого.
+
+```bash
+bin/hyprown attach          # подключить (первый пункт меню install.sh внутри Hyprland)
+bin/hyprown session status  # что запущено и кем
+bin/hyprown detach          # отключить наши процессы, Hyprland остаётся
+```
+
+В KDE Attach недоступен (там нет Hyprland): используйте `bin/hyprown preview`. Конфиги меняются только
+с резервной копией; что требует нового входа (например, смена основного конфига), откладывается с
+предупреждением. Процессы Session Manager не зависят от терминала, не дублируются и не трогают
+чужие процессы. Подробности: `docs/ARCHITECTURE.md`, проверка на Fedora: `docs/FEDORA_VERIFY.md`.
+
+## Горячие клавиши
+
+Единый реестр: `manifests/keybinds.toml`. `hypr/keybinds.conf` из него **генерируется** (руками не править).
+Личные переназначения лежат в `~/.local/state/hyprdesk/keybinds.user.conf` и не перезаписываются без
+вашего разрешения. Редактор: HyprlandOwn Manager, раздел Keybinds; в терминале: `bin/hyprown keys list|check|set|reset|live|verify`.
+Назначение проверяется на конфликты с реестром, с живыми привязками `hyprctl binds` и со стандартными привязками Hyprland
+(Super+M в стандартном конфиге выходит из Hyprland, Super+E открывает файловый менеджер).
+
 ## Правила
 
 - Пароли, токены и приватные данные не сохраняются в репозитории.

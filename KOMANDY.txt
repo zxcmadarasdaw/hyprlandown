@@ -21,7 +21,7 @@ bash install.sh
 bash install.sh                 Установка: меню, план, подтверждение, пакеты, конфиги, предложение Preview
 bin/hyprown preview             Hyprland окном внутри KDE (панель, виджеты, обои). KDE не затрагивается
 bin/hyprown desktop             Проверка готовности и как войти в полную сессию через экран SDDM
-bin/hyprown manager             Графический менеджер компонентов (10 разделов)
+bin/hyprown manager             Графический менеджер (12 разделов, в т.ч. Keybinds и Session)
 bin/hyprown doctor              Диагностика (только чтение)
 
 
@@ -147,3 +147,31 @@ bin/hyprown doctor
 bin/hyprown shell probe
 tail -n 60 ~/.local/state/hyprdesk/logs/quickshell.log
 tail -n 60 ~/.local/state/hyprdesk/logs/preview.log
+
+ПОДКЛЮЧЕНИЕ К ТЕКУЩЕЙ СЕССИИ HYPRLAND (Live Session Attach)
+-----------------------------------------------------------
+bin/hyprown attach                      Подключить HyprlandOwn к запущенному Hyprland (без выхода, без второго Hyprland)
+bin/hyprown attach --no-config          Только запустить процессы, конфиги и пакеты не трогать
+bin/hyprown attach --instance СИГН      Указать экземпляр Hyprland, если их несколько
+bin/hyprown detach                      Остановить наши процессы; Hyprland и его конфиг остаются
+bin/hyprown detach --restore-config     То же, плюс вернуть конфиги из копий Attach
+bin/hyprown session status              Что запущено: оболочка, виджеты, обои, IPC
+bin/hyprown session start-all           Запустить недостающие процессы (дубликатов не будет)
+bin/hyprown session restart-all         Перезапустить наши компоненты (с ограничением частоты)
+bin/hyprown session stop-all            Остановить только наши процессы (чужие не трогаются)
+В KDE Attach недоступен: там используйте bin/hyprown preview.
+Коды выхода Attach: 6 = подключение невозможно (нет сессии Hyprland / KDE / нет графики).
+
+
+ГОРЯЧИЕ КЛАВИШИ
+---------------
+bin/hyprown keys list                   Реестр: действие, комбинация, по умолчанию, изменена ли
+bin/hyprown keys check ID --mods "SUPER" --key M      Проверить конфликты перед назначением
+bin/hyprown keys set ID --mods "SUPER SHIFT" --key X  Назначить (добавьте --apply, чтобы применить сразу; --force при предупреждениях)
+bin/hyprown keys reset [ID]             Вернуть умолчание (одной привязки или всех)
+bin/hyprown keys unbind ID              Отключить привязку
+bin/hyprown keys live                   Сверка с живыми hyprctl binds: чужие привязки на наших комбинациях
+bin/hyprown keys verify                 Проверка реестра и сгенерированных файлов
+bin/hyprown keys render [--write]       Показать/записать hypr/keybinds.conf из реестра
+bin/hyprown keys apply                  Применить реестр к запущенной сессии (IPC)
+Все команды keys принимают --json и --mode preview. Графический редактор: bin/hyprown manager -> Keybinds.

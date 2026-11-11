@@ -81,10 +81,13 @@ class UI:
             line = "  " + "  ".join(c.ljust(widths[i]) for i, c in enumerate(r))
             self._p(self.c(line, "bold") if header and n == 0 else line)
 
-    def confirm(self, question: str, default: bool = True) -> bool:
+    def confirm(self, question: str, default: bool = True, yes_ok: bool = False) -> bool:
+        """yes_ok: вопрос про перезапись пользовательских данных. В терминале по умолчанию «нет»,
+        а заранее данное --yes считается осознанным разрешением (обычные вопросы получают default)."""
         if self.assume_yes:
-            self._p(f"  ? {question} [авто: {'да' if default else 'нет'}]")
-            return default
+            answer = True if yes_ok else default
+            self._p(f"  ? {question} [авто: {'да' if answer else 'нет'}]")
+            return answer
         if not self.interactive:
             self.error(f"Нужно подтверждение, но терминал неинтерактивный: {question}. "
                        "Запустите в терминале или добавьте --yes.")
@@ -119,6 +122,21 @@ class UI:
                 if tok.isdigit() and 1 <= int(tok) <= len(items):
                     cid = items[int(tok) - 1][0]
                     state[cid] = not state[cid]
+
+    def choose_one(self, title: str, items: list[tuple[str, str]]) -> str | None:
+        """Нумерованное меню: возвращает id выбранного пункта, None: выход или нет терминала."""
+        if self.assume_yes or not self.interactive:
+            return None
+        while True:
+            self._p()
+            self._p(self.c(title, "bold"))
+            for n, (_, label) in enumerate(items, 1):
+                self._p(f"  {n:>2}. {label}")
+            ans = input("  Номер пункта (q: выйти) > ").strip().lower()
+            if ans in ("q", "й"):
+                return None
+            if ans.isdigit() and 1 <= int(ans) <= len(items):
+                return items[int(ans) - 1][0]
 
     @contextmanager
     def step(self, title: str):
@@ -223,9 +241,9 @@ class JsonUI(UI):
     def table(self, rows, header=None):
         self._emit("table", header=header, rows=rows)
 
-    def confirm(self, question, default=True):
+    def confirm(self, question, default=True, yes_ok=False):
         if self.assume_yes:
-            return default
+            return True if yes_ok else default
         self._emit("error", text=f"Нужно подтверждение: {question}. Manager обязан показать план и вызвать команду с --yes.")
         return False
 

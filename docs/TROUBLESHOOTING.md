@@ -68,6 +68,18 @@ COPR `sdegler/hyprland` (Hyprland 0.57.1). Установщик сам пред�
 Если сессия не поднялась, следующий вход автоматически откроется в safe-режиме (минимальный конфиг).
 Принудительно: `bin/hyprown recovery safe-mode on` (снять: `off`). Откат конфигов: `bin/hyprown recovery rollback`.
 
+## 4a. Горячие клавиши не работают или выходит из Hyprland по Super+M
+
+Это стандартный автогенерированный конфиг Hyprland (Super+M = exit). Проверьте, какой конфиг запущен:
+`bin/hyprown config fingerprint`, затем `bin/hyprown attach` (предложит безопасное переключение с копией)
+или перелогиньтесь в сессию HyprlandOwn. Сверка: `bin/hyprown keys live`, исправление: `bin/hyprown keys apply`.
+Конфликт с вашей комбинацией: `bin/hyprown keys check ID --mods ... --key ...`.
+
+## 4b. Attach отказывает (код 6)
+
+Нет сессии Hyprland (вы в KDE или без графики). Используйте `bin/hyprown preview`. Несколько экземпляров Hyprland:
+укажите `--instance СИГНАТУРА` (сигнатуры: `ls $XDG_RUNTIME_DIR/hypr`).
+
 ## 5. Preview не открывается
 
 - Код 3: нет графической сессии: запускайте из терминала в KDE.

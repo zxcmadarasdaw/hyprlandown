@@ -20,6 +20,7 @@ from pathlib import Path
 from .config import ConfigManager
 from .context import Ctx
 from .registry import atomic_write
+from .sessenv import scan_instances, usable
 from .system import detect
 
 SESSIONS_DIR = "/usr/share/wayland-sessions"
@@ -34,16 +35,20 @@ class SessionManager:
 
     # ---------- связь с запущенным Hyprland ----------
     def hypr_env(self) -> dict:
-        """Окружение для hyprctl. Нужно, если команду запустили не из Hyprland (терминал KDE, Manager)."""
+        """Окружение для hyprctl, если команду запустили не из Hyprland (терминал KDE, Manager).
+
+        Экземпляр угадывается ТОЛЬКО если живой пользовательский экземпляр ровно один: при нескольких
+        (например, обычная сессия и Preview) выбирать наугад нельзя, чужой IPC не трогаем.
+        Точный выбор: HYPRLAND_INSTANCE_SIGNATURE или `hyprown attach --instance`.
+        """
         env = dict(self.ctx.env)
-        if env.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        live = [i for i in scan_instances(self.ctx, env) if usable(i)]
+        sig = env.get("HYPRLAND_INSTANCE_SIGNATURE")
+        if sig and (not live or any(i.sig == sig for i in live)):
             return env
-        rt = Path(env.get("XDG_RUNTIME_DIR", "")) / "hypr"
-        if rt.is_dir():
-            cands = [d for d in rt.iterdir() if d.is_dir() and (d / ".socket.sock").exists()]
-            if cands:
-                newest = max(cands, key=lambda d: d.stat().st_mtime)
-                env["HYPRLAND_INSTANCE_SIGNATURE"] = newest.name
+        env.pop("HYPRLAND_INSTANCE_SIGNATURE", None)  # устаревшая сигнатура: не доверяем
+        if len(live) == 1:
+            env["HYPRLAND_INSTANCE_SIGNATURE"] = live[0].sig
         return env
 
     def in_hyprland(self) -> bool:

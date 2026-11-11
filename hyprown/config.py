@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .context import Ctx
+from .keybinds import KeyManager, render_default, render_user
 from .manifest import Component, DST_ROOTS
 from .registry import atomic_write
 
@@ -154,6 +155,8 @@ class ConfigManager:
         outdir.mkdir(parents=True, exist_ok=True)
         hypr = c.repo / "hypr"
         self.ensure_performance_file()
+        keys = KeyManager(c)
+        keys.ensure_user_conf()
         main_lines = []
         for line in (hypr / "hyprland.conf").read_text(encoding="utf-8").splitlines():
             m = re.match(r"^(\s*)source\s*=\s*(.+?)\s*$", line)
@@ -166,6 +169,12 @@ class ConfigManager:
                 text = target.read_text(encoding="utf-8") if target.exists() else ""
                 if mode == "preview":
                     text = re.sub(r"(?m)^\$mainMod\s*=.*$", "$mainMod = ALT", text)
+                    # Клавиши Preview берутся из реестра: там учтены комбинации, которые
+                    # перехватывает KDE (Alt+Space), и переназначения пользователя.
+                    if target.name == "keybinds.conf":
+                        text = render_default(keys.binds, "preview")
+                    elif target.name == "keybinds.user.conf":
+                        text = render_user(keys.binds, keys.user(), "preview")
                 copy.write_text(self._expand(text), encoding="utf-8")
                 main_lines.append(f"{m.group(1)}source = {copy}")
                 continue

@@ -84,7 +84,7 @@ class Render(unittest.TestCase):
         for line in text.splitlines():
             if line.startswith("source"):
                 name = line.split("=", 1)[1].strip().rsplit("/", 1)[-1]
-                if name == "performance.conf":
+                if name in ("performance.conf", "keybinds.user.conf"):
                     continue  # создаётся установщиком
                 self.assertTrue((Path(__file__).resolve().parent.parent / "hypr" / name).exists(), name)
 

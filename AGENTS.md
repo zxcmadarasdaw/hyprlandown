@@ -38,6 +38,9 @@ bin/hyprown doctor         # диагностика
 | Диагностика | `bin/hyprown doctor --json` |
 | Событийный поток для GUI | `bin/hyprown --json-stream --yes component install ID` |
 | Откат | `bin/hyprown recovery rollback` |
+| Подключить к текущей сессии Hyprland | `bin/hyprown --yes attach --json` (отключить: `detach`) |
+| Процессы сессии | `bin/hyprown session status --json` (`start-all`, `restart-all`, `stop-all`) |
+| Горячие клавиши | `bin/hyprown keys list --json`, `keys check`, `keys set ... --apply --yes` |
 
 Правила вызова:
 
@@ -46,7 +49,8 @@ bin/hyprown doctor         # диагностика
 - Без `--yes` и без терминала команды, меняющие систему, **отказывают**, а не гадают.
 - `--dry-run`: только план, ничего не меняется.
 - Коды выхода: 0 успех, 1 ошибка выполнения, 2 план с проблемами или неверные аргументы,
-  3 нет графической/Wayland-сессии, 4 нет Quickshell, 5 нет `shell.qml`.
+  3 нет графической/Wayland-сессии, 4 нет Quickshell, 5 нет `shell.qml`,
+  6 Attach невозможен (нет сессии Hyprland или это KDE).
 - Не используйте `sudo bin/hyprown ...`: повышение прав делает сам backend, только для
   `dnf` и `scripts/install-session.sh`.
 
@@ -71,7 +75,8 @@ Manager QML ─► bin/hyprown --json ─┘                 │            │
 |---|---|
 | `install.sh` | Тонкая точка входа, зовёт `bin/hyprown install` |
 | `bin/hyprown` | Шим: находит репозиторий (даже через симлинк), запускает `python -m hyprown` |
-| `hyprown/` | Backend: `cli`, `installer`, `resolver`, `registry`, `manifest`, `pkg`, `config`, `session`, `shell`, `recovery`, `updater`, `diagnostics`, `system`, `runner`, `ui`, `context` |
+| `hyprown/` | Backend: `cli`, `installer`, `resolver`, `registry`, `manifest`, `pkg`, `config`, `session`, `shell`, `procman`, `attach`, `sessenv`, `menu`, `keybinds`, `recovery`, `updater`, `diagnostics`, `system`, `runner`, `ui`, `context` |
+| `manifests/keybinds.toml` | **Единый реестр горячих клавиш.** `hypr/keybinds.conf` из него генерируется (`keys render --write`), руками не править. Личные правки: `~/.local/state/hyprdesk/keybinds.user.conf` |
 | `manifests/packages.toml` | Центральный справочник пакетов (rpm, COPR-источники, проверки версий) |
 | `components/<id>/component.toml` | Манифесты компонентов (доверенный каталог проекта) |
 | `hypr/` | Конфиги Hyprland (этап 1) |
@@ -91,6 +96,12 @@ Manager QML ─► bin/hyprown --json ─┘                 │            │
 - Манифесты **описывают, а не исполняют**: в них нельзя указать команду, скрипт или
   произвольный пакет. Новые виды действий добавляются в код, а не в манифест.
 - Не делайте `git push` без разрешения владельца.
+- Attach/Session Manager: не запускать второй Hyprland, не завершать чужие процессы (kill только
+  после проверки владения по pid-файлу и cmdline), не менять SDDM, KDE, загрузчик, драйверы.
+- Горячие клавиши: новую привязку добавлять в `manifests/keybinds.toml`, а не в `hypr/*.conf`;
+  пользовательские комбинации не перезаписывать без явного разрешения (`keys set` проверяет конфликты).
+- Флаги `--yes`, `--json`, `--plain` допустимы и до, и после подкоманды. `--yes` не отвечает «да» на
+  вопросы `yes_ok` (COPR и подобные).
 
 ## Как добавить компонент (модуль)
 

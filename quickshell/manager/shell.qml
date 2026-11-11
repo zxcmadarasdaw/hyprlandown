@@ -18,7 +18,8 @@ ShellRoot {
         property int page: 0
         readonly property var sections: [
             "Dashboard", "Components", "Dependencies", "Widgets", "Themes & Wallpapers",
-            "Experimental Plugins", "Updates", "Diagnostics", "Recovery", "Performance"
+            "Experimental Plugins", "Updates", "Diagnostics", "Recovery", "Performance",
+            "Keybinds", "Session"
         ]
 
         Rectangle {
@@ -61,7 +62,7 @@ ShellRoot {
                 // Страница пересоздаётся при переключении: данные всегда свежие.
                 Loader {
                     anchors.fill: parent; anchors.margins: 16
-                    sourceComponent: [dash, comps, deps, widgets, themes, plugins, updates, diag, recovery, perf][win.page]
+                    sourceComponent: [dash, comps, deps, widgets, themes, plugins, updates, diag, recovery, perf, keys, session][win.page]
                 }
             }
         }
@@ -110,6 +111,20 @@ ShellRoot {
                 {label: "Safe-режим при следующем входе: вкл", args: ["recovery", "safe-mode", "on"]},
                 {label: "Safe-режим: выкл", args: ["recovery", "safe-mode", "off"]},
                 {label: "Сбросить состояние оболочки", args: ["recovery", "reset-shell"], confirm: true, tint: "danger"}
+            ]
+        } }
+        Component { id: keys; KeybindsPage {} }
+        Component { id: session; ActionPage {
+            title: "Session"; autoRun: "[\"session\",\"status\",\"--json\"]"
+            hint: "Подключение HyprlandOwn к уже запущенной сессии Hyprland без выхода и без второго композитора. Процессы живут независимо от терминала; чужие процессы не трогаются."
+            actions: [
+                {label: "Состояние", args: ["session", "status", "--json"]},
+                {label: "Подключить к текущей сессии", args: ["--yes", "attach", "--json"], confirm: true},
+                {label: "Запустить недостающие", args: ["session", "start-all"]},
+                {label: "Перезапустить компоненты", args: ["session", "restart-all"]},
+                {label: "Остановить наши процессы", args: ["--yes", "session", "stop-all"], confirm: true},
+                {label: "Отключить (Hyprland остаётся)", args: ["--yes", "detach"], confirm: true},
+                {label: "Отключить и вернуть прежний конфиг", args: ["--yes", "detach", "--restore-config"], confirm: true, tint: "danger"}
             ]
         } }
         Component { id: perf; ActionPage {
