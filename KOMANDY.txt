@@ -1,0 +1,149 @@
+HYPRLANDOWN: ВСЕ КОМАНДЫ
+========================
+Проект: https://github.com/zxcmadarasdaw/hyprlandown
+Статус: проверено только на Windows с моками. На Fedora ещё не запускалось.
+Подробнее: AGENTS.md, docs/ARCHITECTURE.md, docs/FEDORA_VERIFY.md
+
+
+КАК ЗАПУСТИТЬ (Fedora Live, в терминале, от обычного пользователя, не через sudo)
+-------------------------------------------------------------------------------
+git clone https://github.com/zxcmadarasdaw/hyprlandown.git
+cd hyprlandown
+bash install.sh
+
+Дальше: меню (Enter = выбор по умолчанию) -> прочитать план -> "д".
+Если Hyprland нет в репозиториях, спросят про COPR sdegler/hyprland: "д", если согласны.
+В конце "Запустить Preview сейчас?" -> "д". Закрыть Preview: Alt+Shift+E.
+
+
+ГЛАВНЫЕ КОМАНДЫ
+---------------
+bash install.sh                 Установка: меню, план, подтверждение, пакеты, конфиги, предложение Preview
+bin/hyprown preview             Hyprland окном внутри KDE (панель, виджеты, обои). KDE не затрагивается
+bin/hyprown desktop             Проверка готовности и как войти в полную сессию через экран SDDM
+bin/hyprown manager             Графический менеджер компонентов (10 разделов)
+bin/hyprown doctor              Диагностика (только чтение)
+
+
+УСТАНОВКА И КОМПОНЕНТЫ
+----------------------
+bin/hyprown plan                        Показать план установки, ничего не меняя
+bin/hyprown component list              Список компонентов и состояние
+bin/hyprown component info ID           Подробности о компоненте
+bin/hyprown component plan ID           План установки одного компонента
+bin/hyprown component install ID        Установить компонент (план + подтверждение)
+bin/hyprown component remove ID         Удалить (ссылки вернутся к копиям, пакеты остаются)
+bin/hyprown component enable ID         Включить и применить без перезапуска сессии, если можно
+bin/hyprown component disable ID        Выключить
+bin/hyprown deps                        Таблица пакетов: что есть, чего нет, кому нужно
+bin/hyprown status                      Сводка (версия, компоненты, оболочка, профиль, safe-режим)
+bin/hyprown trust ID                    Одобрить компонент из недоверенного каталога после просмотра манифеста
+bin/hyprown version                     Версия
+
+Компоненты (ID):
+  desktop-core       Hyprland, kitty, fuzzel, конфиги hypr/
+  quickshell-shell   Панель, виджеты, обои (Quickshell)
+  wallpaper-engine   Видео-обои (mpv, mpvpaper, ffmpeg)
+  manager            Графический Manager
+  login-session      Записи "Hyprland" и "Hyprland (safe)" на экране входа (нужен root; на Live выключен)
+  hyprpaper          Только пакет, по умолчанию выключен
+  hyprlock           Только пакет, по умолчанию выключен
+
+
+ФЛАГИ (для install и других команд)
+-----------------------------------
+--yes, -y            Заранее согласиться со всем, КРОМЕ подключения стороннего COPR
+--dry-run            Только показать план, ничего не менять
+--plain              Без цвета и анимации
+--json               Результат одним JSON (для программ и Manager)
+--json-stream        События построчно в JSON (для длинных операций)
+--components a,b     Только указанные компоненты (для install)
+--minimal            Только обязательные пакеты, без рекомендуемых
+--no-copr            Не подключать сторонние репозитории
+--live-ok            Заранее согласиться с ограничениями Live USB
+--no-launch          После установки не предлагать запуск
+
+Примеры:
+bash install.sh --dry-run
+bash install.sh --components desktop-core,quickshell-shell
+bin/hyprown --plain --yes install --components desktop-core --no-copr
+
+
+ОБОЛОЧКА QUICKSHELL
+-------------------
+bin/hyprown shell run           Супервизор: запускает Quickshell, один экземпляр, перезапуск после сбоя (его зовёт exec-once)
+bin/hyprown shell start         Запустить супервизор в фоне, независимо от терминала
+bin/hyprown shell stop          Остановить
+bin/hyprown shell restart       Перезапустить (Super+Ctrl+R)
+bin/hyprown shell status        Состояние, pid, путь к логу
+bin/hyprown shell probe         Что умеет установленный qs (--path, --config, --no-duplicate)
+bin/hyprown ipc canvas toggleEdit     Команда оболочке через IPC (так работают горячие клавиши)
+bin/hyprown ipc wallpaper next        Следующие обои (также prev, picker, reset, status)
+
+Лог оболочки: ~/.local/state/hyprdesk/logs/quickshell.log
+
+
+КОНФИГИ
+-------
+bin/hyprown config link          Создать ссылки ~/.config/hypr и ~/.config/quickshell/hyprdesk на репозиторий (с резервной копией)
+bin/hyprown config unlink        Вернуть сохранённые копии
+bin/hyprown config status        Состояние ссылок
+bin/hyprown config verify        Проверка синтаксиса (Hyprland --verify-config) и устаревших параметров
+bin/hyprown config fingerprint   Проверка, что ЗАПУЩЕННАЯ сессия использует наш конфиг, а не автогенерированный
+bin/hyprown config render        Собрать конфиг с абсолютными путями (--mode preview для Preview)
+bin/hyprown config rollback      Откат ссылок последней установки
+
+
+ВОССТАНОВЛЕНИЕ, ОБНОВЛЕНИЕ, ПРОИЗВОДИТЕЛЬНОСТЬ
+----------------------------------------------
+bin/hyprown recovery list              Снимки состояния и журнал установок
+bin/hyprown recovery snapshot          Сделать снимок
+bin/hyprown recovery restore ID        Восстановить из снимка
+bin/hyprown recovery rollback          Откатить последнюю установку (пакеты не удаляются)
+bin/hyprown recovery safe-mode on      Следующий вход в Hyprland будет в safe-режиме
+bin/hyprown recovery safe-mode off     Выключить принудительный safe-режим
+bin/hyprown recovery reset-shell       Убрать сохранённое состояние оболочки, если она падает (копия остаётся)
+bin/hyprown update check               Проверить обновления проекта в Git
+bin/hyprown update apply               Обновить (git pull --ff-only) со снимком; откажет при ваших незакоммиченных правках
+bin/hyprown update reload              Применить без перезапуска сессии (перезапуск оболочки + hyprctl reload)
+bin/hyprown perf get                   Текущий профиль графики
+bin/hyprown perf set quality           Полное качество
+bin/hyprown perf set balanced          Мягче блюр и тени
+bin/hyprown perf set lite              Без блюра, теней и анимаций (слабые GPU, виртуалки, Live)
+
+
+СКРИПТЫ
+-------
+bash scripts/test-all.sh                       Все автотесты проекта
+bash scripts/fedora-diagnose.sh                Диагностика Fedora без Python и root, отчёт в ~/hyprown-diagnose-<время>.txt
+bash scripts/link-configs.sh --apply           Совместимая обёртка над "config link" (--rollback: откат)
+sudo bash scripts/install-session.sh --apply   Записи входа для SDDM (обычно ставит установщик сам)
+
+
+ГОРЯЧИЕ КЛАВИШИ В СЕССИИ (в Preview вместо Super используется Alt)
+-----------------------------------------------------------------
+Super+Enter              Терминал
+Super+Space              Лаунчер
+Super+Q                  Закрыть окно
+Super+E                  Режим редактирования холста виджетов
+Super+W                  Следующие обои
+Super+Ctrl+W             Предыдущие обои
+Super+Shift+W            Сетка превью обоев
+Super+Ctrl+R             Перезапуск оболочки
+Super+M                  Открыть Manager
+Super+Shift+E            Выход из сессии (в Preview: Alt+Shift+E)
+
+
+КОДЫ ВЫХОДА
+-----------
+0 успех | 1 ошибка выполнения | 2 план с проблемами или неверные аргументы
+3 нет графической/Wayland-сессии | 4 нет Quickshell | 5 нет shell.qml
+
+
+ЕСЛИ ЧТО-ТО НЕ РАБОТАЕТ
+-----------------------
+bash scripts/fedora-diagnose.sh        и прислать файл отчёта
+bin/hyprown doctor
+bin/hyprown shell probe
+tail -n 60 ~/.local/state/hyprdesk/logs/quickshell.log
+tail -n 60 ~/.local/state/hyprdesk/logs/preview.log
