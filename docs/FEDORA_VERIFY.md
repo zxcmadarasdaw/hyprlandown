@@ -27,12 +27,12 @@
 - [ ] Панель, виджеты, обои видны после входа; закрытие терминала их не убивает
 - [ ] Повторный `bin/hyprown shell start` не создаёт вторую панель
 - [ ] `kill -9 $(pgrep -x quickshell)`: супервизор поднимает оболочку снова (лог `quickshell.log`)
-- [ ] Хоткеи через `hyprown ipc` работают: Super+E, Super+W, Super+Shift+W, Super+Ctrl+R
-- [ ] Super+M и кнопка «⚙ Manager» на панели открывают Manager
+- [ ] Хоткеи через `hyprown ipc` работают: Super+Shift+C, Super+W, Super+Shift+W, Super+Ctrl+R
+- [ ] Super+D и кнопка «⚙ Manager» на панели открывают Manager
 
 ## C. Сессии
 
-- [ ] `bin/hyprown preview` из KDE: окно Hyprland с панелью, виджетами, обоями; Alt+Shift+E закрывает; KDE цел
+- [ ] `bin/hyprown preview` из KDE: окно Hyprland с панелью, виджетами, обоями; Alt+M закрывает; KDE цел
 - [ ] Preview не создаёт и не оставляет `session.marker`
 - [ ] После `login-session`: на экране SDDM есть «Hyprland» и «Hyprland (safe)»; вход работает
 - [ ] После аварии (`pkill -9 Hyprland`) следующий вход в safe; `recovery safe-mode on/off` работает
@@ -56,7 +56,7 @@
 - [ ] Закрыть терминал: оболочка продолжает работать.
 - [ ] `bin/hyprown detach`: Hyprland жив, оболочка остановлена; `detach --restore-config` вернул конфиги.
 - [ ] В KDE `attach` отказывает с кодом 6 и объяснением.
-- [ ] `bin/hyprown keys live`: Super+M, Super+E, Super+W, Super+Space, Super+Enter не заняты чужими привязками.
+- [ ] `bin/hyprown keys live`: Super+Q, Super+C, Super+M, Super+E, Super+D, Super+W, Super+Space не заняты чужими привязками.
 - [ ] Manager -> Keybinds: переназначить комбинацию, увидеть конфликт, применить; личное не затирается.
 - [ ] Preview: комбинации с ALT работают (Alt+Space перехватывает KDE, редактор предупредит).
 

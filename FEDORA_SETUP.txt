@@ -109,7 +109,7 @@ bash scripts/link-configs.sh --rollback
 
 Hyprland
 
-Внутри открывшегося окна нажми Super+Enter (откроется kitty), затем
+Внутри открывшегося окна нажми Super+Q (откроется kitty), затем
 в терминале выполни:
 
 hyprctl configerrors
@@ -117,7 +117,7 @@ hyprctl configerrors
 Ожидание: ничего не выведено (пусто).
 Если есть текст ошибки, скопировать его целиком и прислать.
 
-Выход из Hyprland: Super+Shift+E.
+Выход из Hyprland: Super+M.
 
 
 ШАГ 7А. Этапы 2 и 3: Quickshell, холст виджетов, обои
@@ -143,7 +143,7 @@ ffmpeg -f lavfi -i "mandelbrot=s=1920x1080:r=30" -t 20 -c:v libvpx-vp9 -b:v 4M ~
 qs -c hyprdesk
 
 Горячие клавиши:
-  Super+E          режим редактирования виджетов (вкл/выкл)
+  Super+Shift+C     режим редактирования виджетов (вкл/выкл)
   Super+Ctrl+0     камера холста в центр, 100%
   Super+W          следующие обои       Super+Ctrl+W  предыдущие
   Super+Shift+W    сетка превью обоев

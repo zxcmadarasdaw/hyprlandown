@@ -170,9 +170,9 @@ class AttachFlow(unittest.TestCase):
         with no_links(), fake_kill(s.alive) as sent:
             rep = s.engine.attach()
         self.assertEqual(rep.code, 0, [x.to_dict() for x in rep.steps])
-        # клавиши: Super+M больше не выход, всё действует
+        # клавиши: всё действует, выход ровно один (Super+M)
         self.assertTrue(s.engine.keys.live(s.ctx.env)["ok"])
-        self.assertEqual([b for b in s.fh.binds if b["dispatcher"] == "exit" and b["key"].lower() == "m"], [])
+        self.assertEqual([b["key"].lower() for b in s.fh.binds if b["dispatcher"] == "exit"], ["m"])
         # процессы
         self.assertEqual(len(s.popen.calls), 1)
         # сессия не тронута: Hyprland не получал сигналов и команд завершения
@@ -570,18 +570,19 @@ class MenuAndCli(unittest.TestCase):
         code, _ = self.run_cmd(cmd_keys, s, ["keys", "check", "manager", "--mods", "SUPER SHIFT", "--key", "X"])
         self.assertEqual(code, 0)
 
-    def test_cli_keys_live_reports_exit_on_super_m(self):
+    def test_cli_keys_live_reports_missing_keys_of_stock_config(self):
         s = Scene(self)
         code, out = self.run_cmd(cmd_keys, s, ["keys", "live", "--json"])
         data = json.loads(out)
         self.assertEqual(code, 1)
-        self.assertTrue(next(i for i in data["items"] if i["id"] == "manager")["danger"])
+        self.assertEqual(next(i for i in data["items"] if i["id"] == "manager")["status"], "missing")
+        self.assertEqual(next(i for i in data["items"] if i["id"] == "terminal")["status"], "ok")
 
     def test_cli_keys_set_applies_through_ipc_only_after_consent(self):
         s = Scene(self, yes=False)
-        code, _ = self.run_cmd(cmd_keys, s, ["keys", "set", "manager", "--mods", "SUPER SHIFT", "--key", "X", "--apply"])
-        self.assertEqual(s.fh.keywords, [], "без разрешения чужие привязки не снимаются")
-        self.assertEqual(s.engine.keys.user()["overrides"]["manager"]["key"], "X", "само назначение сохранено")
+        code, _ = self.run_cmd(cmd_keys, s, ["keys", "set", "manager", "--mods", "SUPER", "--key", "S", "--apply", "--force"])
+        self.assertEqual(s.fh.keywords, [], "без разрешения чужие привязки (Super+S magic) не снимаются")
+        self.assertEqual(s.engine.keys.user()["overrides"]["manager"]["key"], "S", "само назначение сохранено")
 
     def test_cli_keys_set_with_yes_applies(self):
         s = Scene(self, yes=True)

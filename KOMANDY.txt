@@ -13,7 +13,7 @@ bash install.sh
 
 Дальше: меню (Enter = выбор по умолчанию) -> прочитать план -> "д".
 Если Hyprland нет в репозиториях, спросят про COPR sdegler/hyprland: "д", если согласны.
-В конце "Запустить Preview сейчас?" -> "д". Закрыть Preview: Alt+Shift+E.
+В конце "Запустить Preview сейчас?" -> "д". Закрыть Preview: Alt+M.
 
 
 ГЛАВНЫЕ КОМАНДЫ
@@ -122,16 +122,23 @@ sudo bash scripts/install-session.sh --apply   Записи входа для SD
 
 ГОРЯЧИЕ КЛАВИШИ В СЕССИИ (в Preview вместо Super используется Alt)
 -----------------------------------------------------------------
-Super+Enter              Терминал
-Super+Space              Лаунчер
-Super+Q                  Закрыть окно
-Super+E                  Режим редактирования холста виджетов
-Super+W                  Следующие обои
-Super+Ctrl+W             Предыдущие обои
-Super+Shift+W            Сетка превью обоев
+Super+Q                  Терминал
+Super+C                  Закрыть окно
+Super+M                  Выход из Hyprland (в Preview: Alt+M)
+Super+E                  Файловый менеджер
+Super+Space              Лаунчер (в Preview: Alt+R)
+Super+D                  HyprlandOwn Manager
+Super+L                  Заблокировать экран (hyprlock)
+Print                    Скриншот области в буфер обмена (grim, slurp, wl-copy)
+Super+F / Super+Shift+F  Полный экран / развернуть с панелью
+Super+V / P / J          Плавающее окно / псевдотайлинг / смена деления
+Super+стрелки            Фокус; Super+Shift+стрелки: переместить окно; Super+Ctrl+стрелки: размер
+Super+1..9               Рабочие пространства (Shift: перенести окно); колесо мыши: соседние
+Super+Shift+C            Режим редактирования холста виджетов; Super+Ctrl+0: камера в центр
+Super+W                  Следующие обои; Ctrl+W: предыдущие; Shift+W: сетка превью
 Super+Ctrl+R             Перезапуск оболочки
-Super+M                  Открыть Manager
-Super+Shift+E            Выход из сессии (в Preview: Alt+Shift+E)
+Громкость, яркость       Клавиши XF86 (wpctl, brightnessctl)
+Полный и актуальный список: bin/hyprown keys list
 
 
 КОДЫ ВЫХОДА

@@ -24,7 +24,7 @@ id = "terminal"
 title = "Терминал"
 category = "Программы"
 mods = "SUPER"
-key = "RETURN"
+key = "Q"
 dispatcher = "exec"
 arg = "$terminal"
 
@@ -44,7 +44,7 @@ id = "window.close"
 title = "Закрыть окно"
 category = "Окна"
 mods = "SUPER"
-key = "Q"
+key = "C"
 dispatcher = "killactive"
 
 [[bind]]
@@ -83,8 +83,8 @@ dispatcher = "togglesplit"
 id = "session.exit"
 title = "Выход из сессии"
 category = "Выход из сессии. Штатный выход снимает маркер аварии (см. hypr/session)."
-mods = "SUPER SHIFT"
-key = "E"
+mods = "SUPER"
+key = "M"
 dispatcher = "exit"
 critical = true
 
@@ -146,8 +146,8 @@ arg = "{k}"
 id = "canvas.edit"
 title = "Холст виджетов: режим правки"
 category = "Холст виджетов (этап 2)"
-mods = "SUPER"
-key = "E"
+mods = "SUPER SHIFT"
+key = "C"
 dispatcher = "exec"
 arg = "$qsipc canvas toggleEdit"
 
@@ -196,16 +196,181 @@ key = "W"
 dispatcher = "exec"
 arg = "$qsipc wallpaper picker"
 
-# В стандартном конфиге Hyprland Super+M выходит из сессии. Здесь M открывает Manager,
-# а выход живёт на Super+Shift+E (session.exit).
+# Раскладка как в стандартном конфиге Hyprland: Super+Q терминал, Super+C закрыть окно,
+# Super+M выход, Super+E файловый менеджер. Manager живёт на Super+D.
 [[bind]]
 id = "manager"
 title = "HyprlandOwn Manager"
 category = "HyprlandOwn Manager: компоненты, зависимости, диагностика, восстановление"
 mods = "SUPER"
-key = "M"
+key = "D"
 dispatcher = "exec"
 arg = "~/.local/bin/hyprown manager"
+
+[[bind]]
+id = "filemanager"
+title = "Файловый менеджер"
+category = "Программы"
+mods = "SUPER"
+key = "E"
+dispatcher = "exec"
+arg = "$fileManager"
+
+[[bind]]
+id = "lock"
+title = "Заблокировать экран"
+category = "Программы"
+mods = "SUPER"
+key = "L"
+dispatcher = "exec"
+arg = "hyprlock"
+
+[[bind]]
+id = "screenshot"
+title = "Скриншот области в буфер обмена"
+category = "Программы"
+key = "PRINT"
+dispatcher = "exec"
+arg = "sh -c 'grim -g \"$(slurp)\" - | wl-copy'"
+
+[[bind]]
+id = "window.fullscreen.keep"
+title = "Развернуть окно (с панелью)"
+category = "Окна"
+mods = "SUPER SHIFT"
+key = "F"
+dispatcher = "fullscreen"
+arg = "1"
+
+[[bind]]
+id = "window.move.left"
+title = "Переместить окно влево"
+category = "Окна"
+mods = "SUPER SHIFT"
+key = "left"
+dispatcher = "movewindow"
+arg = "l"
+
+[[bind]]
+id = "window.move.right"
+title = "Переместить окно вправо"
+category = "Окна"
+mods = "SUPER SHIFT"
+key = "right"
+dispatcher = "movewindow"
+arg = "r"
+
+[[bind]]
+id = "window.move.up"
+title = "Переместить окно вверх"
+category = "Окна"
+mods = "SUPER SHIFT"
+key = "up"
+dispatcher = "movewindow"
+arg = "u"
+
+[[bind]]
+id = "window.move.down"
+title = "Переместить окно вниз"
+category = "Окна"
+mods = "SUPER SHIFT"
+key = "down"
+dispatcher = "movewindow"
+arg = "d"
+
+[[bind]]
+id = "window.resize.left"
+title = "Окно уже"
+category = "Окна"
+mods = "SUPER CTRL"
+key = "left"
+dispatcher = "resizeactive"
+arg = "-40 0"
+
+[[bind]]
+id = "window.resize.right"
+title = "Окно шире"
+category = "Окна"
+mods = "SUPER CTRL"
+key = "right"
+dispatcher = "resizeactive"
+arg = "40 0"
+
+[[bind]]
+id = "window.resize.up"
+title = "Окно ниже"
+category = "Окна"
+mods = "SUPER CTRL"
+key = "up"
+dispatcher = "resizeactive"
+arg = "0 -40"
+
+[[bind]]
+id = "window.resize.down"
+title = "Окно выше"
+category = "Окна"
+mods = "SUPER CTRL"
+key = "down"
+dispatcher = "resizeactive"
+arg = "0 40"
+
+[[bind]]
+id = "workspace.next"
+title = "Следующее рабочее пространство (колесо)"
+category = "Рабочие пространства"
+mods = "SUPER"
+key = "mouse_down"
+dispatcher = "workspace"
+arg = "e+1"
+
+[[bind]]
+id = "workspace.prev"
+title = "Предыдущее рабочее пространство (колесо)"
+category = "Рабочие пространства"
+mods = "SUPER"
+key = "mouse_up"
+dispatcher = "workspace"
+arg = "e-1"
+
+[[bind]]
+id = "volume.up"
+title = "Громкость выше"
+category = "Мультимедиа"
+key = "XF86AudioRaiseVolume"
+dispatcher = "exec"
+arg = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
+
+[[bind]]
+id = "volume.down"
+title = "Громкость ниже"
+category = "Мультимедиа"
+key = "XF86AudioLowerVolume"
+dispatcher = "exec"
+arg = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+
+[[bind]]
+id = "volume.mute"
+title = "Выключить звук"
+category = "Мультимедиа"
+key = "XF86AudioMute"
+dispatcher = "exec"
+arg = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+
+[[bind]]
+id = "brightness.up"
+title = "Яркость выше"
+category = "Мультимедиа"
+key = "XF86MonBrightnessUp"
+dispatcher = "exec"
+arg = "brightnessctl set 5%+"
+
+[[bind]]
+id = "brightness.down"
+title = "Яркость ниже"
+category = "Мультимедиа"
+key = "XF86MonBrightnessDown"
+dispatcher = "exec"
+arg = "brightnessctl set 5%-"
 
 [[bind]]
 id = "mouse.move"

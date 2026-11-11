@@ -19,7 +19,7 @@ MASK = {"SHIFT": 1, "CTRL": 4, "ALT": 8, "SUPER": 64}
 # Что делает стандартный (автосгенерированный) конфиг Hyprland
 STOCK = [("SUPER", "q", "exec", "kitty"), ("SUPER", "c", "killactive", ""), ("SUPER", "m", "exit", ""),
          ("SUPER", "e", "exec", "dolphin"), ("SUPER", "v", "togglefloating", ""),
-         ("SUPER", "r", "exec", "wofi --show drun"), ("SUPER", "left", "movefocus", "l")]
+         ("SUPER", "r", "exec", "wofi --show drun"), ("SUPER", "s", "togglespecialworkspace", "magic"), ("SUPER", "left", "movefocus", "l")]
 HOME_BIN = "/home/u/.local/bin/hyprown"
 
 

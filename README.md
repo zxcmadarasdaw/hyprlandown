@@ -84,7 +84,7 @@ bin/hyprown detach          # отключить наши процессы, Hypr
 Личные переназначения лежат в `~/.local/state/hyprdesk/keybinds.user.conf` и не перезаписываются без
 вашего разрешения. Редактор: HyprlandOwn Manager, раздел Keybinds; в терминале: `bin/hyprown keys list|check|set|reset|live|verify`.
 Назначение проверяется на конфликты с реестром, с живыми привязками `hyprctl binds` и со стандартными привязками Hyprland
-(Super+M в стандартном конфиге выходит из Hyprland, Super+E открывает файловый менеджер).
+(раскладка основных клавиш как в стандартном Hyprland: Super+Q терминал, Super+C закрыть окно, Super+M выход, Super+E файловый менеджер; Manager на Super+D).
 
 ## Правила
 

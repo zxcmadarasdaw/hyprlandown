@@ -90,7 +90,7 @@ class SessionManager:
         log = c.log_dir / "preview.log"
         log.parent.mkdir(parents=True, exist_ok=True)
         ui.info(f"Запуск Hyprland во вложенном окне. Конфиг: {conf}. Лог: {log}")
-        ui.info("Закрыть: Alt+Shift+E внутри окна Preview или закрыть окно. KDE это не затронет.")
+        ui.info("Закрыть: Alt+M внутри окна Preview или закрыть окно. KDE это не затронет.")
         lf = open(log, "ab")
         lf.write(f"\n=== {time.strftime('%F %T')} preview conf={conf} ===\n".encode())
         proc = self.popen(["Hyprland", "-c", str(conf)], env=env, stdin=subprocess.DEVNULL,

@@ -183,7 +183,7 @@ class ConfigManager:
             main_lines += ["", "# --- Preview: переопределения ---",
                            "input {", "    kb_options =", "}",
                            'exec-once = hyprctl notify 0 12000 "rgb(7aa2f7)" '
-                           '"HyprlandOwn Preview. Alt+Shift+E: закрыть окно предпросмотра."']
+                           '"HyprlandOwn Preview. Alt+M: закрыть окно предпросмотра."']
         out = outdir / "hyprland.conf"
         out.write_text("\n".join(main_lines) + "\n", encoding="utf-8")
         return out
