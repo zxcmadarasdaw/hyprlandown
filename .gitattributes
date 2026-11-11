@@ -1,0 +1,6 @@
+# Всё текстовое хранится и выкладывается с LF: скрипты с CRLF не запускаются на Linux.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.mp4 binary

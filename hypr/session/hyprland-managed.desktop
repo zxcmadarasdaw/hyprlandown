@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Hyprland
+Comment=Hyprland с маркером аварийного выхода и safe-сессией
+Exec=/usr/local/bin/hyprland-session
+Type=Application
+DesktopNames=Hyprland

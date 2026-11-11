@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+# hyprland-session: обёртка запуска сессии Hyprland (этап 1).
+#
+# Что делает:
+#   1. Проверяет маркер "сессия начата" (session.marker в каталоге состояния).
+#   2. Если маркер остался от прошлой сессии (аварийный выход), стартует
+#      безопасную сессию (минимальный конфиг, без плагинов и Quickshell)
+#      и показывает уведомление.
+#   3. Пишет маркер (атомарно: временный файл, потом переименование),
+#      запускает Hyprland и ждёт его завершения.
+#   4. Штатный выход снимает маркер, аварийный оставляет.
+#
+# Аргументы:
+#   --safe          запустить safe-сессию (для записи "Hyprland (safe)");
+#                   если указан вместе с --force-normal, побеждает --safe
+#   --force-normal  игнорировать маркер и запустить обычную сессию
+#   --dry-run       показать решение и выйти, ничего не запуская и не записывая
+#
+# Игровой режим и аварийное восстановление - разные механизмы (ТЗ 1.6, 2.4).
+# Обёртка ничего не знает об играх: она реагирует только на то, как завершился
+# сам Hyprland.
+#
+# Что считается штатным выходом:
+#   - код выхода Hyprland 0 (в том числе выход через dispatcher exit);
+#   - сигнал TERM/HUP/INT самой обёртке (завершение сеанса, выключение).
+#     Маркер снимается сразу в обработчике сигнала, чтобы SIGKILL от systemd
+#     после таймаута не оставил ложный маркер;
+#   - Hyprland упал с ненулевым кодом, но в течение GRACE_SEC секунд обёртка
+#     получила сигнал, systemd сообщил об остановке системы или logind - о
+#     закрытии сеанса (при выключении Hyprland может получить TERM раньше
+#     обёртки).
+# Всё остальное (падение, SIGKILL, потеря питания) оставляет маркер.
+#
+# Маркер принадлежит конкретному запуску (token). Сессия снимает только свой
+# маркер, поэтому две одновременные сессии не стирают аварию друг друга.
+#
+# В маркере нет секретов: только время старта, pid, token и режим.
+
+set -u
+
+STATE_DIR="${HYPRDESK_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/hyprdesk}"
+MARKER="$STATE_DIR/session.marker"
+LOG="$STATE_DIR/session.log"
+CONF_DIR="${HYPRDESK_CONF_DIR:-$HOME/.config/hypr}"
+MAIN_CONF="$CONF_DIR/hyprland.conf"
+SAFE_CONF="$CONF_DIR/safe/hyprland-safe.conf"
+HYPR_BIN="${HYPRLAND_BIN:-Hyprland}"
+GRACE_SEC="${HYPRDESK_GRACE_SEC:-2}"
+LOG_MAX_BYTES=262144
+TOKEN="$$-$(date +%s%N 2>/dev/null || date +%s)"
+
+force_safe=0
+force_normal=0
+dry_run=0
+for arg in "$@"; do
+    case "$arg" in
+        --safe) force_safe=1 ;;
+        --force-normal) force_normal=1 ;;
+        --dry-run) dry_run=1 ;;
+        *) echo "hyprland-session: неизвестный аргумент: $arg" >&2; exit 2 ;;
+    esac
+done
+
+log() {
+    printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$*" >>"$LOG" 2>/dev/null || true
+}
+
+# Атомарная запись: содержимое со stdin, цель - $1.
+atomic_write() {
+    local target=$1 tmp
+    tmp=$(mktemp "$target.XXXXXX") || return 1
+    if cat >"$tmp" && mv -f "$tmp" "$target"; then
+        return 0
+    fi
+    rm -f "$tmp"
+    return 1
+}
+
+write_marker() {
+    {
+        echo "started=$(date +%s)"
+        echo "pid=$$"
+        echo "token=$TOKEN"
+        echo "mode=$1"
+    } | atomic_write "$MARKER"
+}
+
+marker_is_ours() {
+    [ -r "$MARKER" ] && grep -qx "token=$TOKEN" "$MARKER"
+}
+
+clear_marker() {
+    if marker_is_ours; then
+        rm -f "$MARKER"
+    fi
+}
+
+rotate_log() {
+    local size
+    size=$(stat -c %s "$LOG" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$LOG_MAX_BYTES" ]; then
+        mv -f "$LOG" "$LOG.1" 2>/dev/null || true
+    fi
+}
+
+# Минимальный конфиг на случай, если файл safe-сессии недоступен.
+make_emergency_conf() {
+    local f
+    f=$(mktemp --suffix=.conf "${XDG_RUNTIME_DIR:-/tmp}/hyprdesk-safe.XXXXXX") || return 1
+    cat >"$f" <<'EOF'
+monitor = , preferred, auto, 1
+misc {
+    force_default_wallpaper = 0
+    disable_hyprland_logo = true
+    background_color = rgb(101820)
+}
+$mainMod = SUPER
+bind = $mainMod, RETURN, exec, kitty
+bind = $mainMod, Q, killactive
+bind = $mainMod SHIFT, E, exit
+exec-once = hyprctl notify 0 15000 "rgb(ffb86c)" "Файлы конфигурации не найдены: запущена аварийная минимальная сессия."
+EOF
+    echo "$f"
+}
+
+is_shutdown() {
+    if command -v systemctl >/dev/null 2>&1; then
+        [ "$(systemctl is-system-running 2>/dev/null)" = "stopping" ] && return 0
+    fi
+    if [ -n "${XDG_SESSION_ID:-}" ] && command -v loginctl >/dev/null 2>&1; then
+        [ "$(loginctl show-session "$XDG_SESSION_ID" -p State --value 2>/dev/null)" = "closing" ] && return 0
+    fi
+    return 1
+}
+
+# --- Решение: какую сессию запускать ---
+
+mode=normal
+reason=""
+marker_present=0
+[ -e "$MARKER" ] && marker_present=1
+
+if [ "$force_safe" -eq 1 ]; then
+    mode=safe
+    reason="Выбрана сессия Hyprland (safe)."
+elif [ "$marker_present" -eq 1 ] && [ "$force_normal" -eq 0 ]; then
+    mode=safe
+    reason="Прошлая сессия завершилась аварийно. Запущена safe-сессия."
+elif [ ! -r "$MAIN_CONF" ]; then
+    mode=safe
+    reason="Основной конфиг не найден. Запущена safe-сессия."
+fi
+
+conf="$MAIN_CONF"
+if [ "$mode" = "safe" ]; then
+    conf="$SAFE_CONF"
+fi
+
+if [ "$dry_run" -eq 1 ]; then
+    echo "mode=$mode"
+    echo "marker_present=$marker_present"
+    echo "conf=$conf"
+    echo "reason=$reason"
+    exit 0
+fi
+
+mkdir -p "$STATE_DIR" 2>/dev/null || true
+rotate_log
+
+EMERGENCY_CONF=""
+if [ "$mode" = "safe" ] && [ ! -r "$conf" ]; then
+    log "safe-конфиг недоступен ($conf), используем аварийный минимальный"
+    EMERGENCY_CONF=$(make_emergency_conf) || { log "не удалось создать аварийный конфиг"; exit 1; }
+    conf="$EMERGENCY_CONF"
+fi
+
+if ! write_marker "$mode"; then
+    log "не удалось записать маркер (старт продолжается, аварию не отследить)"
+fi
+log "старт mode=$mode conf=$conf marker_before=$marker_present token=$TOKEN"
+
+# --- Запуск и ожидание ---
+
+SIGNALED=0
+INTERRUPTED=0
+child_done=0
+
+on_signal() {
+    SIGNALED=1
+    INTERRUPTED=1
+    clear_marker
+    log "сигнал завершения сеанса: маркер снят"
+    if [ "$child_done" -eq 0 ]; then
+        kill -TERM "$child" 2>/dev/null
+    fi
+}
+
+export HYPRDESK_SESSION_MODE="$mode"
+export HYPRDESK_NOTICE="$reason"
+
+"$HYPR_BIN" -c "$conf" &
+child=$!
+
+trap on_signal TERM HUP INT
+
+# wait прерывается обработанным сигналом (код >128), поэтому ждём повторно,
+# пока не получим статус самого процесса. Если сигнал пришёл уже после
+# завершения Hyprland, повторный wait вернёт 127, но SIGNALED=1 и выход штатный.
+code=0
+while :; do
+    INTERRUPTED=0
+    wait "$child"
+    code=$?
+    [ "$INTERRUPTED" -eq 0 ] && break
+done
+child_done=1
+
+# --- Классификация выхода ---
+
+normal=0
+why=""
+if [ "$SIGNALED" -eq 1 ]; then
+    normal=1; why="signal"
+elif [ "$code" -eq 0 ]; then
+    normal=1; why="exit0"
+else
+    i=0
+    steps=$((GRACE_SEC * 10))
+    while [ "$i" -lt "$steps" ] && [ "$SIGNALED" -eq 0 ]; do
+        is_shutdown && break
+        sleep 0.1
+        i=$((i + 1))
+    done
+    if [ "$SIGNALED" -eq 1 ]; then
+        normal=1; why="signal-late"
+    elif is_shutdown; then
+        normal=1; why="shutdown"
+    fi
+fi
+
+[ -n "$EMERGENCY_CONF" ] && rm -f "$EMERGENCY_CONF"
+
+if [ "$normal" -eq 1 ]; then
+    clear_marker
+    log "штатный выход code=$code why=$why, маркер снят"
+    exit 0
+fi
+
+log "аварийный выход code=$code, маркер оставлен"
+exit "$code"

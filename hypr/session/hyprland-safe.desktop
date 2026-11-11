@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Hyprland (safe)
+Comment=Минимальная сессия Hyprland без плагинов и Quickshell
+Exec=/usr/local/bin/hyprland-session --safe
+Type=Application
+DesktopNames=Hyprland
