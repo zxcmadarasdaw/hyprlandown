@@ -1,0 +1,23 @@
+schema = 1
+id = "quickshell-shell"
+name = "Quickshell Shell"
+version = "0.1.0"
+summary = "Панель, холст виджетов и система обоев (этапы 2 и 3): quickshell/hyprdesk."
+kind = "core"
+default = true
+requires = ["desktop-core"]
+permissions = ["packages", "copr", "user-config", "autostart"]
+
+[compat]
+fedora_min = 42
+
+[packages]
+required = ["quickshell", "qt6-qml"]
+
+[[links]]
+name = "quickshell"
+src = "quickshell/hyprdesk"
+dst = "@config/quickshell/hyprdesk"
+
+[activation]
+mode = "quickshell-restart"

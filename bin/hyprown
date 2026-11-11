@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# hyprown: точка входа CLI HyprlandOwn. Находит репозиторий (в том числе через
+# симлинк ~/.local/bin/hyprown) и запускает Python-пакет hyprown.
+# Нужен Python 3.11+ (на Fedora он есть по умолчанию).
+set -eu
+src="${BASH_SOURCE[0]}"
+while [ -L "$src" ]; do
+    dir=$(cd -P "$(dirname "$src")" && pwd)
+    src=$(readlink "$src")
+    case "$src" in /*) ;; *) src="$dir/$src" ;; esac
+done
+ROOT=$(cd -P "$(dirname "$src")/.." && pwd)
+
+PY=""
+for cand in python3 python; do
+    if command -v "$cand" >/dev/null 2>&1 &&
+       "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+        PY="$cand"; break
+    fi
+done
+if [ -z "$PY" ]; then
+    echo "hyprown: нужен Python 3.11 или новее. На Fedora: sudo dnf install -y python3" >&2
+    exit 127
+fi
+export HYPROWN_REPO="$ROOT"
+export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONDONTWRITEBYTECODE=1
+exec "$PY" -m hyprown "$@"

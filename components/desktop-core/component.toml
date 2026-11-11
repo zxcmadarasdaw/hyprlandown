@@ -1,0 +1,28 @@
+schema = 1
+id = "desktop-core"
+name = "Desktop Core"
+version = "0.1.0"
+summary = "Hyprland, терминал, лаунчер и конфиги hypr/ (этап 1). Основа всего окружения."
+kind = "core"
+default = true
+permissions = ["packages", "copr", "user-config"]
+
+[compat]
+fedora_min = 42
+hyprland_min = "0.50.0"
+
+[packages]
+required = ["hyprland", "kitty", "fuzzel"]
+
+[[links]]
+name = "hypr"
+src = "hypr"
+dst = "@config/hypr"
+
+[[links]]
+name = "cli"
+src = "bin/hyprown"
+dst = "@bin/hyprown"
+
+[activation]
+mode = "hyprland-reload"

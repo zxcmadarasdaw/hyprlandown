@@ -1,0 +1,21 @@
+schema = 1
+id = "wallpaper-engine"
+name = "Wallpaper Engine"
+version = "0.1.0"
+summary = "Видео-обои (mpvpaper + mpv), превью (ffmpeg) и аппаратное декодирование по типу GPU. Картинки работают и без него."
+kind = "core"
+default = true
+requires = ["quickshell-shell"]
+permissions = ["packages"]
+
+[compat]
+fedora_min = 42
+
+[packages]
+recommended = ["mpv", "mpvpaper", "ffmpeg"]
+
+[packages.gpu]
+amd = ["mesa-va", "libva-utils"]
+
+[activation]
+mode = "quickshell-restart"

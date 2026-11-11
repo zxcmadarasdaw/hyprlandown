@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 
 // Панель сверху (этап 2): рабочие пространства, часы, статус.
@@ -42,6 +43,12 @@ PanelWindow {
         for (let i = 0; i < all.length; i++)
             if (all[i].id === id) return true;
         return false;
+    }
+
+    // Открыть HyprlandOwn Manager (CLI проекта находит и запускает его сам).
+    Process {
+        id: managerOpen
+        command: ["sh", "-c", "exec ~/.local/bin/hyprown manager"]
     }
 
     SystemClock {
@@ -144,6 +151,11 @@ PanelWindow {
                 label: Math.round(zoom * 100) + "%"
                 tint: Theme.textMuted
                 onClicked: CanvasStore.cameraResetRequested(bar.monName)
+            }
+            StatusChip {
+                label: "⚙ Manager"
+                tint: Theme.secondary
+                onClicked: managerOpen.running = true
             }
             StatusChip {
                 label: "▦ Обои"

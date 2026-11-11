@@ -1,0 +1,16 @@
+schema = 1
+id = "hyprlock"
+name = "hyprlock (экран блокировки)"
+version = "0.1.0"
+summary = "Только пакет. Конфигурации экрана блокировки в проекте ещё нет, по умолчанию выключено."
+kind = "plugin"
+default = false
+experimental = true
+requires = ["desktop-core"]
+permissions = ["packages", "copr"]
+
+[packages]
+required = ["hyprlock"]
+
+[activation]
+mode = "none"

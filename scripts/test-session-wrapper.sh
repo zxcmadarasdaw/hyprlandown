@@ -71,6 +71,19 @@ check "штатный выход из safe снимает маркер" '[ ! -e 
 FAKE_MODE=exit0 bash "$WRAPPER"
 check "после снятия маркера вход снова обычный" 'last_args | grep -q "hyprland.conf" && ! last_args | grep -q safe'
 
+# 4b. Флаг force-safe (hyprown recovery safe-mode on): safe-режим без аварии,
+# --force-normal его обходит, после снятия флага вход снова обычный.
+reset
+mkdir -p "$HYPRDESK_STATE_DIR"
+: >"$HYPRDESK_STATE_DIR/force-safe"
+FAKE_MODE=exit0 bash "$WRAPPER"
+check "force-safe запускает safe-конфиг" 'last_args | grep -q "hyprland-safe.conf"'
+FAKE_MODE=exit0 bash "$WRAPPER" --force-normal
+check "--force-normal обходит force-safe" 'last_args | grep -q "hyprland.conf" && ! last_args | grep -q safe'
+rm -f "$HYPRDESK_STATE_DIR/force-safe"
+FAKE_MODE=exit0 bash "$WRAPPER"
+check "без флага вход снова обычный" 'last_args | grep -q "hyprland.conf" && ! last_args | grep -q safe'
+
 # 5. Явный --safe без маркера.
 reset
 FAKE_MODE=exit0 bash "$WRAPPER" --safe

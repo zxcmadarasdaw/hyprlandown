@@ -143,6 +143,10 @@ marker_present=0
 if [ "$force_safe" -eq 1 ]; then
     mode=safe
     reason="Выбрана сессия Hyprland (safe)."
+elif [ -e "$STATE_DIR/force-safe" ] && [ "$force_normal" -eq 0 ]; then
+    # Флаг ставит hyprown recovery safe-mode on (Manager -> Recovery).
+    mode=safe
+    reason="Включён принудительный safe-режим (hyprown recovery safe-mode off)."
 elif [ "$marker_present" -eq 1 ] && [ "$force_normal" -eq 0 ]; then
     mode=safe
     reason="Прошлая сессия завершилась аварийно. Запущена safe-сессия."

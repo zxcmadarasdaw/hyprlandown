@@ -1,0 +1,20 @@
+schema = 1
+id = "manager"
+name = "HyprlandOwn Manager"
+version = "0.1.0"
+summary = "Графический центр управления компонентами (quickshell/manager). Работает от обычного пользователя."
+kind = "tool"
+default = true
+requires = ["quickshell-shell"]
+permissions = ["user-config"]
+
+[compat]
+fedora_min = 42
+
+[[links]]
+name = "manager-desktop"
+src = "share/applications/hyprown-manager.desktop"
+dst = "@data/applications/hyprown-manager.desktop"
+
+[activation]
+mode = "none"

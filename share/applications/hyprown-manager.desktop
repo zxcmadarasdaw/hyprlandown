@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=HyprlandOwn Manager
+Comment=Компоненты, зависимости, диагностика и восстановление HyprlandOwn
+Exec=sh -c 'exec "$HOME/.local/bin/hyprown" manager'
+Icon=preferences-desktop
+Terminal=false
+Categories=Settings;System;

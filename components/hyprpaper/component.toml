@@ -1,0 +1,16 @@
+schema = 1
+id = "hyprpaper"
+name = "hyprpaper (статические обои)"
+version = "0.1.0"
+summary = "Только пакет. Текущие обои рисует Quickshell, поэтому по умолчанию выключено; интеграции пока нет."
+kind = "plugin"
+default = false
+experimental = true
+requires = ["desktop-core"]
+permissions = ["packages", "copr"]
+
+[packages]
+required = ["hyprpaper"]
+
+[activation]
+mode = "none"

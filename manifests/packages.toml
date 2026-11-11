@@ -1,0 +1,97 @@
+# Центральный манифест зависимостей HyprlandOwn.
+#
+# Компоненты (components/*/component.toml) ссылаются на пакеты только по
+# логическому id из этого файла. Произвольные имена пакетов и команды в
+# манифесты компонентов не попадают: так недоверенный манифест не может
+# заставить установщик поставить или выполнить что-то своё.
+#
+# Поля пакета:
+#   rpm         имена пакетов Fedora (все должны быть установлены)
+#   check_bin   программа в PATH: если есть, пакет считается установленным
+#   check_paths файлы/каталоги: если существует любой, пакет считается установленным
+#   version_cmd команда определения версии, version_re: регулярка с группой версии
+#   min_version минимальная версия (иначе предупреждение или отказ)
+#   sources     НЕОФИЦИАЛЬНЫЕ источники (COPR), только если в репозиториях пакета нет.
+#               Каждый источник требует отдельного подтверждения пользователя.
+#   note        пояснение для пользователя
+
+[package.hyprland]
+description = "Композитор Hyprland"
+rpm = ["hyprland"]
+check_bin = "Hyprland"
+version_cmd = ["Hyprland", "--version"]
+version_re = '(\d+\.\d+\.\d+)'
+min_version = "0.50.0"
+note = "В стандартных репозиториях Fedora 45 пакета нет: используется COPR."
+sources = [
+  { type = "copr", id = "sdegler/hyprland", verified = "Fedora 45 KDE Live, Hyprland 0.57.1", note = "Сторонний COPR (не поддерживается Fedora). Может исчезнуть или измениться." },
+]
+
+[package.kitty]
+description = "Терминал по умолчанию"
+rpm = ["kitty"]
+check_bin = "kitty"
+
+[package.fuzzel]
+description = "Лаунчер приложений по умолчанию"
+rpm = ["fuzzel"]
+check_bin = "fuzzel"
+
+[package.quickshell]
+description = "Quickshell: движок панели, виджетов и обоев (нужна версия 0.2 или новее)"
+rpm = ["quickshell"]
+check_bin = "qs"
+version_cmd = ["qs", "--version"]
+version_re = '(\d+\.\d+(?:\.\d+)?)'
+min_version = "0.2.0"
+note = "Если пакета нет в репозиториях, установщик предложит COPR-кандидат. Имя кандидата не проверено, проверка на Fedora обязательна."
+sources = [
+  { type = "copr", id = "errornointernet/quickshell", verified = "", note = "Сторонний COPR-кандидат, НЕ проверен в этом проекте." },
+]
+
+[package.qt6-qml]
+description = "QML-модули Qt 6 (Qt.labs.folderlistmodel и др.), нужны Quickshell-конфигу"
+rpm = ["qt6-qtdeclarative"]
+check_paths = ["/usr/lib64/qt6/qml/Qt/labs/folderlistmodel", "/usr/lib/qt6/qml/Qt/labs/folderlistmodel"]
+
+[package.mpv]
+description = "Проигрыватель: основа видео-обоев"
+rpm = ["mpv"]
+check_bin = "mpv"
+
+[package.mpvpaper]
+description = "Видео-обои на слое Background (вызывается из WallpaperWindow.qml)"
+rpm = ["mpvpaper"]
+check_bin = "mpvpaper"
+note = "Если пакета нет в Fedora, видео-обои не работают, остальное работает (на панели будет предупреждение). Вручную не собираем."
+
+[package.ffmpeg]
+description = "Кадры для превью видео-обоев (WallpaperPicker.qml)"
+rpm = ["ffmpeg-free"]
+check_bin = "ffmpeg"
+
+[package.mesa-va]
+description = "VA-API для AMD: аппаратное декодирование видео-обоев"
+rpm = ["mesa-va-drivers"]
+check_paths = ["/usr/lib64/dri/radeonsi_drv_video.so", "/usr/lib64/dri/libva_drv_video.so"]
+
+[package.libva-utils]
+description = "vainfo: проверка аппаратного декодирования"
+rpm = ["libva-utils"]
+check_bin = "vainfo"
+
+[package.hyprpaper]
+description = "Статические обои Hyprland (в текущих этапах не используется: обои рисует Quickshell)"
+rpm = ["hyprpaper"]
+check_bin = "hyprpaper"
+sources = [
+  { type = "copr", id = "sdegler/hyprland", verified = "Fedora 45 KDE Live", note = "Тот же сторонний COPR, что и для Hyprland." },
+]
+
+[package.hyprlock]
+description = "Экран блокировки Hyprland (в текущих этапах не используется)"
+rpm = ["hyprlock"]
+check_bin = "hyprlock"
+sources = [
+  { type = "copr", id = "sdegler/hyprland", verified = "Fedora 45 KDE Live", note = "Тот же сторонний COPR, что и для Hyprland." },
+]

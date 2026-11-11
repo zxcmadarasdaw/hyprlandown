@@ -1,0 +1,18 @@
+schema = 1
+id = "login-session"
+name = "Login Session (Desktop Mode)"
+version = "0.1.0"
+summary = "Записи «Hyprland» и «Hyprland (safe)» на экране входа SDDM и обёртка с защитой от аварий. Нужен root."
+kind = "core"
+default = true
+requires = ["desktop-core"]
+permissions = ["session-files"]
+
+[compat]
+fedora_min = 42
+
+[session]
+system_files = true
+
+[activation]
+mode = "relogin"

@@ -3,7 +3,18 @@
 Конфигурация рабочего стола на Fedora Linux: Hyprland как композитор,
 Quickshell для виджетов и панелей, SDDM с собственной QML-темой для экрана входа.
 
-Установка на Fedora с нуля, по командам: `FEDORA_SETUP.txt`.
+## Быстрый старт (Fedora 45 KDE, в том числе Live USB)
+
+```bash
+git clone https://github.com/zxcmadarasdaw/hyprlandown.git && cd hyprlandown
+bash install.sh          # меню, план, подтверждение, установка зависимостей и конфигов
+bin/hyprown preview      # рабочий стол окном внутри KDE
+bin/hyprown manager      # графический менеджер компонентов
+```
+
+Подробно: `AGENTS.md` (для людей и ИИ), `docs/ARCHITECTURE.md`, `docs/MODULES.md`,
+`docs/TROUBLESHOOTING.md`, `docs/FEDORA_VERIFY.md` (что ещё не проверено на Fedora).
+Ручная пошаговая установка (устарела, оставлена для справки): `FEDORA_SETUP.txt`.
 
 Полное техническое задание и план этапов: `PROJECT_BRIEF_v5.txt`
 (копия лежит в docs/).
@@ -23,9 +34,14 @@ dotfiles/
 │   ├── tokens.default.json    пример значений: Aurora Glass
 │   ├── STAGE1_CHECKLIST.md    чек-лист проверки этапа 1 на Fedora
 │   └── STAGE2_3_CHECKLIST.md  чек-лист этапов 2 и 3
-├── scripts/     link-configs.sh, install-session.sh, test-session-wrapper.sh
+├── hyprown/     backend установщика и менеджера (Python): install, doctor, preview, shell, recovery
+├── components/  манифесты компонентов (модули), manifests/packages.toml: справочник пакетов
+├── bin/hyprown  CLI проекта; install.sh: точка входа установщика
+├── quickshell/manager/  графический HyprlandOwn Manager
+├── tests/       Python-тесты (запуск: bash scripts/test-all.sh)
+├── scripts/     test-all.sh, fedora-diagnose.sh, install-session.sh, link-configs.sh, тесты этапов 1-3
 ├── versions.txt проверенные версии Hyprland, Quickshell, SDDM и плагинов
-└── install.sh   установка (пока черновик, не запускать)
+└── install.sh   установщик (тонкая точка входа в hyprown)
 ```
 
 ## Статус
@@ -39,13 +55,12 @@ dotfiles/
 (`node scripts/test-qs-logic.js`), QML проверен qmllint на синтаксис.
 В живом Quickshell/Hyprland не запускался — проверка по `docs/STAGE2_3_CHECKLIST.md`.
 
-## Порядок установки (черновик, уточняется по этапам)
+## Установка и менеджер (этап 4а)
 
-1. Загрузиться в Fedora (live или установленная система).
-2. Проверить версии по `versions.txt`.
-3. Сделать резервную копию текущих конфигов.
-4. Запустить `install.sh` (после того, как он будет реализован) и выбрать GPU: amd или nvidia.
-5. Выйти из сессии и выбрать вход "Hyprland (safe)", если основная сессия не стартует.
+Реализованы единый установщик (`install.sh`), Preview Mode, супервизор Quickshell, система модулей
+(`components/`), основа HyprlandOwn Manager, диагностика, откат и safe-режим. Логика проверена
+тестами на Windows с моками; **на Fedora не запускалась**: `docs/FEDORA_VERIFY.md`.
+Выбор GPU (amd/nvidia, этап 14) пока определяется автоматически и только для декодера видео-обоев.
 
 ## Правила
 
