@@ -86,6 +86,23 @@ bin/hyprown detach          # отключить наши процессы, Hypr
 Назначение проверяется на конфликты с реестром, с живыми привязками `hyprctl binds` и со стандартными привязками Hyprland
 (раскладка основных клавиш как в стандартном Hyprland: Super+Q терминал, Super+C закрыть окно, Super+M выход, Super+E файловый менеджер; Manager на Super+D).
 
+## Цвета и темы (этап 4)
+
+Пять готовых тем (Aurora Glass, Cyber Terminal, Developer Workspace, Gaming Mode, Cinema & Music) и режим
+«палитра из обоев»: цвета берутся из картинки или первого кадра видео и пересчитываются при смене обоев.
+Любой виджет можно перекрасить; его цвета не сбрасываются при смене обоев и темы.
+
+```bash
+bin/hyprown theme list                          # темы
+bin/hyprown theme set cyber-terminal            # готовая тема
+bin/hyprown theme mode wallpaper                # палитра из текущих обоев
+bin/hyprown theme override clock-1 palette.primary=#FFB86C   # свой цвет виджета
+bin/hyprown theme reset                         # стандартная палитра (цвета виджетов остаются)
+```
+
+Ctrl+Alt+F открывает выбор темы на рабочем столе; настройки: HyprlandOwn Manager, раздел Themes & Wallpapers.
+Для палитры из обоев нужен `ffmpeg` (или ImageMagick). Схема токенов: `docs/TOKENS.md`.
+
 ## Правила
 
 - Пароли, токены и приватные данные не сохраняются в репозитории.

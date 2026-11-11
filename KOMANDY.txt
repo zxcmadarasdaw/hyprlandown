@@ -141,6 +141,22 @@ Super+Ctrl+R             Перезапуск оболочки
 Полный и актуальный список: bin/hyprown keys list
 
 
+ЦВЕТА И ТЕМЫ (этап 4)
+---------------------
+bin/hyprown theme list                  Готовые темы и текущий режим
+bin/hyprown theme status [--json]       Режим, палитра, цвета виджетов, предупреждения
+bin/hyprown theme set ID                Готовая тема (aurora-glass, cyber-terminal, developer-workspace, gaming-mode, cinema-music)
+bin/hyprown theme mode wallpaper        Палитра из обоев (preset: вернуть палитру темы)
+bin/hyprown theme from-wallpaper [--path ФАЙЛ] [--switch]   Построить палитру из обоев (картинка или первый кадр видео)
+bin/hyprown theme override ВИДЖЕТ palette.primary=#FFB86C    Свой цвет (id виджета или тип: clock-1, clock)
+bin/hyprown theme override ВИДЖЕТ --clear [поле]             Убрать переопределение
+bin/hyprown theme reset [--overrides]   Стандартная палитра (--overrides: сбросить и цвета виджетов)
+bin/hyprown theme apply                 Пересобрать tokens.json и theme.conf
+bin/hyprown theme validate ФАЙЛ         Проверить файл токенов по схеме (docs/TOKENS.md)
+Ctrl+Alt+F                              Выбор темы на рабочем столе (в Preview то же)
+Нужен ffmpeg или ImageMagick для палитры из обоев; без них остаются цвета темы.
+
+
 КОДЫ ВЫХОДА
 -----------
 0 успех | 1 ошибка выполнения | 2 план с проблемами или неверные аргументы

@@ -820,14 +820,7 @@ def cmd_theme(ctx, args) -> int:
             if not args.path:
                 ctx.ui.error("обои не выбраны: укажите файл (--path ФАЙЛ) или выберите обои (Super+W)")
                 return 2
-            try:
-                from .colorx import ColorxError, extract_swatches
-            except ImportError:
-                class ColorxError(Exception):
-                    pass
-
-                def extract_swatches(ctx, path):
-                    raise ColorxError("модуль извлечения цветов (hyprown/colorx.py) ещё не установлен")
+            from .colorx import ColorxError, extract_swatches
             try:
                 swatches = extract_swatches(ctx, args.path)
             except ColorxError as exc:

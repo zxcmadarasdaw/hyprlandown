@@ -41,6 +41,7 @@ bin/hyprown doctor         # диагностика
 | Подключить к текущей сессии Hyprland | `bin/hyprown --yes attach --json` (отключить: `detach`) |
 | Процессы сессии | `bin/hyprown session status --json` (`start-all`, `restart-all`, `stop-all`) |
 | Горячие клавиши | `bin/hyprown keys list --json`, `keys check`, `keys set ... --apply --yes` |
+| Тема и палитра | `bin/hyprown theme status --json`, `theme set ID`, `theme mode wallpaper`, `theme override ВИДЖЕТ поле=значение` |
 
 Правила вызова:
 
@@ -75,8 +76,9 @@ Manager QML ─► bin/hyprown --json ─┘                 │            │
 |---|---|
 | `install.sh` | Тонкая точка входа, зовёт `bin/hyprown install` |
 | `bin/hyprown` | Шим: находит репозиторий (даже через симлинк), запускает `python -m hyprown` |
-| `hyprown/` | Backend: `cli`, `installer`, `resolver`, `registry`, `manifest`, `pkg`, `config`, `session`, `shell`, `procman`, `attach`, `sessenv`, `menu`, `keybinds`, `recovery`, `updater`, `diagnostics`, `system`, `runner`, `ui`, `context` |
+| `hyprown/` | Backend: `cli`, `installer`, `resolver`, `registry`, `manifest`, `pkg`, `config`, `session`, `shell`, `theme`, `colorx`, `procman`, `attach`, `sessenv`, `menu`, `keybinds`, `recovery`, `updater`, `diagnostics`, `system`, `runner`, `ui`, `context` |
 | `manifests/keybinds.toml` | **Единый реестр горячих клавиш.** `hypr/keybinds.conf` из него генерируется (`keys render --write`), руками не править. Личные правки: `~/.local/state/hyprdesk/keybinds.user.conf` |
+| `themes/*.json` | Готовые темы (токены схемы 1, `docs/TOKENS.md`). Новая тема: файл по образцу, `bin/hyprown theme validate`, тест в `tests/test_theme.py` |
 | `manifests/packages.toml` | Центральный справочник пакетов (rpm, COPR-источники, проверки версий) |
 | `components/<id>/component.toml` | Манифесты компонентов (доверенный каталог проекта) |
 | `hypr/` | Конфиги Hyprland (этап 1) |
@@ -100,6 +102,8 @@ Manager QML ─► bin/hyprown --json ─┘                 │            │
   после проверки владения по pid-файлу и cmdline), не менять SDDM, KDE, загрузчик, драйверы.
 - Горячие клавиши: новую привязку добавлять в `manifests/keybinds.toml`, а не в `hypr/*.conf`;
   пользовательские комбинации не перезаписывать без явного разрешения (`keys set` проверяет конфликты).
+- Тема: цвета и параметры виджетов только через токены (`Theme`, `WidgetTheme`), без жёстких цветов в QML.
+  Файл токенов не должен содержать секретов; ошибка в токенах не блокирует вход (берётся Aurora Glass).
 - Флаги `--yes`, `--json`, `--plain` допустимы и до, и после подкоманды. `--yes` не отвечает «да» на
   вопросы `yes_ok` (COPR и подобные).
 
