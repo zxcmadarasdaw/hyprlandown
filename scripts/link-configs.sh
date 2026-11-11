@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
-# Симлинк hypr/ из репозитория в ~/.config/hypr (этап 1).
+# Симлинки конфигов из репозитория в ~/.config (этапы 1-3):
+#   hypr/                -> ~/.config/hypr
+#   quickshell/hyprdesk/ -> ~/.config/quickshell/hyprdesk
 #
 # По умолчанию ничего не меняет (dry-run). Режимы:
 #   (без аргументов)  показать, что будет сделано
-#   --apply           сделать резервную копию текущего ~/.config/hypr и создать симлинк
-#   --rollback        вернуть последнюю резервную копию, убрав симлинк
+#   --apply           сделать резервную копию текущих папок и создать симлинки
+#   --rollback        вернуть последние резервные копии, убрав симлинки
 #
-# Резервные копии лежат в ~/.local/state/hyprdesk/backups.
-# Права root не нужны, /usr и PAM не затрагиваются.
+# Резервные копии лежат в ~/.local/state/hyprdesk/backups, запись об откате
+# для каждой цели своя (last-backup-<имя>). Права root не нужны, /usr и PAM не затрагиваются.
 
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC="$REPO/hypr"
-TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}"
 BACKUP_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hyprdesk/backups"
-LAST_FILE="$BACKUP_DIR/last-backup"
+
+# имя | источник | цель
+LINKS=(
+    "hypr|$REPO/hypr|$CONF/hypr"
+    "quickshell|$REPO/quickshell/hyprdesk|$CONF/quickshell/hyprdesk"
+)
 
 mode="dry-run"
 case "${1:-}" in
@@ -25,59 +31,87 @@ case "${1:-}" in
     *) echo "Неизвестный аргумент: $1" >&2; exit 2 ;;
 esac
 
-if [ "$mode" = "rollback" ]; then
-    [ -r "$LAST_FILE" ] || { echo "Нет записи о резервной копии: $LAST_FILE" >&2; exit 1; }
-    backup=$(cat "$LAST_FILE")
-    if [ "$backup" != "none" ] && [ ! -e "$backup" ]; then
-        echo "Резервная копия не найдена: $backup" >&2
-        exit 1
+record_file() {
+    # Этап 1 писал запись для hypr в файл last-backup: читаем её, если новой нет.
+    local name=$1
+    if [ "$name" = "hypr" ] && [ ! -e "$BACKUP_DIR/last-backup-hypr" ] && [ -e "$BACKUP_DIR/last-backup" ]; then
+        echo "$BACKUP_DIR/last-backup"
+    else
+        echo "$BACKUP_DIR/last-backup-$name"
     fi
-    if [ -L "$TARGET" ]; then
-        rm "$TARGET"
-    elif [ -e "$TARGET" ]; then
-        echo "$TARGET существует и не симлинк, откат остановлен." >&2
-        exit 1
+}
+
+atomic_write() {
+    local target=$1 tmp
+    tmp=$(mktemp "$target.XXXXXX")
+    cat >"$tmp"
+    mv -f "$tmp" "$target"
+}
+
+rollback_one() {
+    local name=$1 target=$2 rec backup
+    rec=$(record_file "$name")
+    if [ ! -r "$rec" ]; then
+        echo "[$name] нет записи о резервной копии ($rec), пропускаю."
+        return 0
+    fi
+    backup=$(cat "$rec")
+    if [ "$backup" != "none" ] && [ ! -e "$backup" ]; then
+        echo "[$name] резервная копия не найдена: $backup" >&2
+        return 1
+    fi
+    if [ -L "$target" ]; then
+        rm "$target"
+    elif [ -e "$target" ]; then
+        echo "[$name] $target существует и не симлинк, откат остановлен." >&2
+        return 1
     fi
     if [ "$backup" = "none" ]; then
-        # Раньше ~/.config/hypr не существовал: откат = убрать симлинк.
-        echo "Симлинк убран, ~/.config/hypr отсутствует, как до установки."
-        exit 0
+        echo "[$name] симлинк убран, $target отсутствует, как до установки."
+    else
+        mv "$backup" "$target"
+        echo "[$name] восстановлено из $backup"
     fi
-    mv "$backup" "$TARGET"
-    echo "Восстановлено из $backup"
-    exit 0
-fi
+    rm -f "$rec"
+}
 
-echo "Источник: $SRC"
-echo "Цель:     $TARGET"
-
-if [ -L "$TARGET" ] && [ "$(readlink "$TARGET")" = "$SRC" ]; then
-    echo "Симлинк уже настроен, делать нечего."
-    exit 0
-fi
-
-if [ "$mode" = "dry-run" ]; then
-    if [ -e "$TARGET" ] || [ -L "$TARGET" ]; then
-        echo "[dry-run] текущий $TARGET будет перемещён в $BACKUP_DIR/hypr.<время>"
+apply_one() {
+    local name=$1 src=$2 target=$3 backup="none"
+    echo "[$name] $target -> $src"
+    if [ -L "$target" ] && [ "$(readlink "$target")" = "$src" ]; then
+        echo "[$name] симлинк уже настроен, делать нечего."
+        return 0
     fi
-    echo "[dry-run] будет создан симлинк $TARGET -> $SRC"
-    echo "Запустите с --apply, чтобы применить."
-    exit 0
-fi
+    if [ "$mode" = "dry-run" ]; then
+        if [ -e "$target" ] || [ -L "$target" ]; then
+            echo "[dry-run] текущий $target будет перемещён в $BACKUP_DIR/$name.<время>"
+        fi
+        echo "[dry-run] будет создан симлинк $target -> $src"
+        return 0
+    fi
+    mkdir -p "$BACKUP_DIR" "$(dirname "$target")"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        backup="$BACKUP_DIR/$name.$(date +%Y%m%d-%H%M%S)"
+        mv "$target" "$backup"
+        echo "[$name] резервная копия: $backup"
+    fi
+    printf '%s\n' "$backup" | atomic_write "$BACKUP_DIR/last-backup-$name"
+    ln -s "$src" "$target"
+    echo "[$name] готово."
+}
 
-mkdir -p "$BACKUP_DIR" "$(dirname "$TARGET")"
-backup="none"
-if [ -e "$TARGET" ] || [ -L "$TARGET" ]; then
-    backup="$BACKUP_DIR/hypr.$(date +%Y%m%d-%H%M%S)"
-    mv "$TARGET" "$backup"
-    echo "Резервная копия: $backup"
-fi
+status=0
+for entry in "${LINKS[@]}"; do
+    IFS='|' read -r name src target <<<"$entry"
+    if [ "$mode" = "rollback" ]; then
+        rollback_one "$name" "$target" || status=1
+    else
+        apply_one "$name" "$src" "$target" || status=1
+    fi
+done
 
-# Атомарная запись записи об откате.
-tmp=$(mktemp "$LAST_FILE.XXXXXX")
-printf '%s\n' "$backup" >"$tmp"
-mv -f "$tmp" "$LAST_FILE"
-
-ln -s "$SRC" "$TARGET"
-echo "Готово: $TARGET -> $SRC"
-echo "Откат: bash scripts/link-configs.sh --rollback"
+case "$mode" in
+    dry-run) echo "Запустите с --apply, чтобы применить." ;;
+    apply) echo "Откат: bash scripts/link-configs.sh --rollback" ;;
+esac
+exit "$status"

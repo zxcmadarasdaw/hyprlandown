@@ -8,6 +8,9 @@ hyprland:        TBD
 quickshell:      TBD
 sddm:            TBD
 mpv:             TBD
+mpvpaper:        TBD
+ffmpeg:          TBD
+# Quickshell нужен 0.2 или новее (implicitHeight, IpcHandler, FileView.blockLoading).
 hyprpm/плагины:  TBD (версия Hyprland, под которую собран плагин)
 
 # Экспериментальные плагины (этап 9), по необходимости:

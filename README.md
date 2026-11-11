@@ -13,12 +13,16 @@ Quickshell для виджетов и панелей, SDDM с собственн
 ```
 dotfiles/
 ├── hypr/        конфиги Hyprland (hyprland.conf, monitors.conf, input.conf, keybinds.conf)
-├── quickshell/  виджеты, холст, панель, темы
+├── quickshell/hyprdesk/  оболочка: обои, холст виджетов, панель (qs -c hyprdesk)
+│   ├── shell.qml           слои по мониторам + IPC для хоткеев
+│   └── lib/*.js            логика камеры и обоев (тесты: scripts/test-qs-logic.js)
+├── wallpapers/  тестовые обои (SVG)
 ├── sddm/        тема экрана входа (QML)
 ├── docs/        документация, чек-листы, описание GPU_SWITCH и тестов
 │   ├── TOKENS.md              схема токенов темы (версия схемы 1)
 │   ├── tokens.default.json    пример значений: Aurora Glass
-│   └── STAGE1_CHECKLIST.md    чек-лист проверки этапа 1 на Fedora
+│   ├── STAGE1_CHECKLIST.md    чек-лист проверки этапа 1 на Fedora
+│   └── STAGE2_3_CHECKLIST.md  чек-лист этапов 2 и 3
 ├── scripts/     link-configs.sh, install-session.sh, test-session-wrapper.sh
 ├── versions.txt проверенные версии Hyprland, Quickshell, SDDM и плагинов
 └── install.sh   установка (пока черновик, не запускать)
@@ -29,6 +33,11 @@ dotfiles/
 Этап 0 (подготовка) готов. Этап 1 (Hyprland: база и safe-сессия): файлы
 написаны, ревью обёртки (Opus) сделано, ждут проверки на Fedora по
 `docs/STAGE1_CHECKLIST.md`. Установка не выполнялась.
+
+Этапы 2 (Quickshell: холст виджетов и панель) и 3 (обои: картинки, видео
+через mpvpaper, сетка превью): код написан, логика покрыта тестами
+(`node scripts/test-qs-logic.js`), QML проверен qmllint на синтаксис.
+В живом Quickshell/Hyprland не запускался — проверка по `docs/STAGE2_3_CHECKLIST.md`.
 
 ## Порядок установки (черновик, уточняется по этапам)
 

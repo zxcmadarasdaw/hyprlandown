@@ -27,9 +27,17 @@ sudo dnf install -y hyprland kitty fuzzel
 
 ШАГ 2. Звук, мультимедиа, видео-обои (для этапов 3 и 5)
 -------------------------------------------------------
-sudo dnf install -y wireplumber mpv
+sudo dnf install -y wireplumber mpv ffmpeg-free nodejs libva-utils
 
 `wireplumber` даёт команду `wpctl`, которую использует громкость.
+`ffmpeg-free` делает превью видео-обоев, `nodejs` нужен только для тестов,
+`libva-utils` даёт команду `vainfo` (проверка аппаратного декодирования).
+
+Видео-обои рисует mpvpaper:
+dnf search mpvpaper
+Если пакет есть:  sudo dnf install -y mpvpaper
+Если нет: НЕ ставь вручную, пришли вывод. Без mpvpaper всё работает,
+кроме видео-обоев (вместо них будет градиент и предупреждение на панели).
 
 Для видеодекодирования на AMD (VAAPI):
 sudo dnf install -y mesa-va-drivers
@@ -108,6 +116,39 @@ hyprctl configerrors
 Выход из Hyprland: Super+Shift+E.
 
 
+ШАГ 7А. Этапы 2 и 3: Quickshell, холст виджетов, обои
+-------------------------------------------------------
+Логика холста и обоев без графики:
+
+node scripts/test-qs-logic.js
+
+Ожидание в конце: "Итог: PASS=48 FAIL=0".
+
+Тестовые обои в папку обоев:
+
+mkdir -p ~/Pictures/Wallpapers
+cp wallpapers/*.svg ~/Pictures/Wallpapers/
+
+Тестовое видео (по желанию, 20 секунд):
+
+ffmpeg -f lavfi -i "mandelbrot=s=1920x1080:r=30" -t 20 -c:v libvpx-vp9 -b:v 4M ~/Pictures/Wallpapers/test.webm
+
+После входа в Hyprland оболочка стартует сама (exec-once в hyprland.conf).
+Запуск вручную из терминала с выводом ошибок:
+
+qs -c hyprdesk
+
+Горячие клавиши:
+  Super+E          режим редактирования виджетов (вкл/выкл)
+  Super+Ctrl+0     камера холста в центр, 100%
+  Super+W          следующие обои       Super+Ctrl+W  предыдущие
+  Super+Shift+W    сетка превью обоев
+  Super+Ctrl+R     перезапустить оболочку
+Холст: тянуть пустое место мышью, колесо - масштаб.
+
+Полный список проверок: docs/STAGE2_3_CHECKLIST.md
+
+
 ШАГ 8. Сессии для экрана входа (только установленная система, не live)
 -----------------------------------------------------------------------
 Для live-системы этот шаг не нужен. На установленной Fedora:
@@ -125,6 +166,8 @@ sudo bash scripts/install-session.sh --remove
 - версия Hyprland:         Hyprland --version
 - вывод шага 5 (тесты)
 - вывод шага 7 (configerrors), если есть ошибки
+- версии: qs --version, mpvpaper --help | head -1
+- отметки по docs/STAGE2_3_CHECKLIST.md и вывод `qs log -c hyprdesk`, если что-то не работает
 - что сработало, что нет
 
 

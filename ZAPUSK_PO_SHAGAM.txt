@@ -42,7 +42,10 @@ Hyprland --version
 Где: терминал.
 
 КОМАНДА:
-sudo dnf install -y wireplumber mpv mesa-va-drivers
+sudo dnf install -y wireplumber mpv mesa-va-drivers ffmpeg-free nodejs libva-utils
+
+Видео-обои (этап 3): dnf search mpvpaper. Если есть: sudo dnf install -y mpvpaper.
+Если нет: пришли вывод. Проверки этапов 2 и 3: FEDORA_SETUP.txt, шаг 7А.
 
 ПРОВЕРКА:
 wpctl status
